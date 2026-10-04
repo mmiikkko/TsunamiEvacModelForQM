@@ -1,0 +1,3 @@
+shelter_id,node_id,name,capacity
+E1,S1,Example destination north,300
+E2,S2,Example destination east,250

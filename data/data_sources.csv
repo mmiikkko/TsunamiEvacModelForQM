@@ -1,0 +1,2 @@
+dataset,source,date_received,coverage_or_resolution,confidence,notes
+All sample CSVs,Synthetic demonstration data,2026-10-03,Schematic; not geographically accurate,Low,Replace and document verified local sources before interpreting outputs

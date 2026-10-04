@@ -1,0 +1,8 @@
+node_id,name,x,y
+O1,Example origin west,0,1
+O2,Example origin south,1,0
+J1,Example junction,2,1
+J2,Example junction east,4,1
+J3,Example junction north,3,3
+S1,Example destination north,4,4
+S2,Example destination east,6,1
