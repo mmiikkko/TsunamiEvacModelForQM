@@ -1,0 +1,56 @@
+Provisional title
+GIS-Based Hazard Screening and Synthetic Evacuation Scenario Prototype for Barangay Gubat, Daet, Camarines Norte
+
+\section{Introduction}
+
+Tsunami evacuation planning requires spatial information about areas that may be inundated, the people and facilities located in those areas, and the routes and destinations available for evacuation. The Philippine Institute of Volcanology and Seismology (PHIVOLCS) publishes information on tsunami-prone coastal areas in the Philippines, while previous graph-based studies have used population locations, road networks, walking speeds, and designated safe areas to assess theoretical evacuation routes and accessibility \cite{phivolcs,peroche}. These approaches show how geographic information systems (GIS) can support preliminary evacuation planning. Their usefulness, however, depends on the quality and local validation of the spatial data and assumptions used.
+
+For barangay-scale planning, a hazard map alone does not establish whether residents can reach a safe destination within a particular time. That assessment also requires a verified study-area boundary, population distribution, connected pedestrian routes, and confirmed evacuation destinations and capacities. In the absence of these inputs, mapped hazard areas and route estimates should be treated as screening information rather than operational guidance.
+
+This study develops an early planning prototype for Barangay Gubat, Daet, Camarines Norte. The current work has two separate components. First, a GIS workflow overlays a georeferenced population-map image, a provisional manually traced study-area polygon, and a supplied tsunami-inundation layer. Second, a web-based scenario tool demonstrates aggregate route and capacity calculations on a schematic network using synthetic example data. The study documents the workflow and its assumptions; it does not claim to predict tsunami behavior, estimate actual evacuation times for Gubat, or identify validated optimal routes. The prototype is intended to make the required data and planning assumptions visible for later replacement and review with local authorities.
+
+\section{Methodology}
+
+\subsection{Study Design}
+
+The work was conducted as an exploratory prototype-development study with two independent components: GIS-based hazard screening and a synthetic network-scenario model. The components are not yet integrated. The GIS component examines spatial overlap between a supplied inundation layer and a georeferenced population-map image. The web prototype demonstrates how route and capacity indicators can be calculated when origins, routes, and destinations are represented as a graph. Because its input values are synthetic, the web model is not used to make quantitative claims about Barangay Gubat.
+
+\subsection{GIS Hazard Screening}
+
+The supplied population map was loaded into QGIS and georeferenced to WGS 84 (EPSG:4326) using four ground control points matched to coordinate-grid locations on the image. A first-order polynomial transformation was used, and the recorded control-point residuals were reviewed as a registration check \cite{qgis}. The image is a map raster; its population symbols were not converted into a point dataset.
+
+A study-area polygon was manually digitized by tracing the visible boundary on the georeferenced image. Since this boundary was traced from an image rather than obtained from an authoritative administrative dataset, it is treated as provisional. The polygon geometry was repaired with QGIS Fix Geometries, and the repaired polygon was used as the overlay mask in a vector Clip operation on the supplied tsunami-inundation polygons. The resulting layer was inspected in QGIS alongside the population-map image. This overlay is a visual screening step; it does not calculate the number of residents exposed.
+
+\subsection{Synthetic Network Scenario Model}
+
+The web prototype represents the transportation system as a directed graph $G=(V,E)$, where $V$ is the set of origin, junction, and destination nodes and $E$ is the set of directed path segments. Each segment has a length and an assumed capacity in people per minute. The example dataset contains two origin groups totaling 450 synthetic people, 12 directed road segments, and two example destinations with assumed capacities of 300 and 250 people. Node coordinates are schematic and are not geographic coordinates for Gubat.
+
+For each origin, the model assigns the group to the nearest reachable destination by shortest free-flow path. The current implementation uses a fixed reference walking speed of 1.15 m/s to weight path segments; origin-specific walking speed assumptions are then used to calculate reported free-flow travel time. The path assignment is therefore a shortest-path allocation, not a network-wide optimization or load-balancing procedure.
+
+For an origin group $i$, the estimated walking time is
+\begin{equation}
+t_i = \sum_{e \in p_i} \frac{L_e}{60v_i},
+\end{equation}
+where $p_i$ is its assigned path, $L_e$ is the length of segment $e$ in meters, and $v_i$ is the assumed walking speed in meters per second. The model also computes an approximate capacity-service penalty by summing the group's population divided by the capacity of each segment on its assigned path. The estimated group completion time is the walking time plus this penalty, capped at twice the walking time, and the user-selected departure delay:
+\begin{equation}
+\hat{t}_i =
+t_i + \min\left(\sum_{e \in p_i}\frac{P_i}{C_e},\,2t_i\right)+d,
+\end{equation}
+where $P_i$ is the group population, $C_e$ is the assumed segment capacity in people per minute, and $d$ is the departure delay in minutes. This is a deterministic screening estimate; it does not simulate movement or queues over time.
+
+The interface allows the user to vary the population, walking-speed, and segment-capacity multipliers; set a departure delay and comparison window; and close selected segments. It reports assigned routes, estimated completion time, the estimated number of people completing evacuation within the selected window, unreachable groups, and destination-capacity overflow. These outputs describe only the synthetic scenario inputs. They are not validated predictions or recommendations for an actual evacuation.
+
+\subsection{Data Limitations and Validation Requirements}
+
+The network model currently uses synthetic schematic origins, roads, populations, and destinations. The GIS boundary is provisional, and the source and scenario represented by the supplied tsunami layer must be documented before its hazard values are interpreted. The georeferenced map image does not provide a machine-readable population-point layer for exposure counting. Local application would require an authoritative boundary, documented hazard data, verified pedestrian routes, confirmed destinations and capacities, and appropriately aggregated population inputs. The model assumptions and outputs would then require technical and local-authority review before any operational use.
+
+References to add to the bibliography:
+
+\bibitem{phivolcs}
+DOST--PHIVOLCS, ``Tsunami Prone Coastal Areas in the Philippines,'' GIS MapServer. [Online]. Available: https://gisweb.phivolcs.dost.gov.ph/arcgis/rest/services/PHIVOLCS/Tsunami_Line_PH/MapServer. [Accessed: Oct. 18, 2026].
+
+\bibitem{peroche}
+M. P\'eroche, F. Leone, and R. Gutton, ``An accessibility graph-based model to optimize tsunami evacuation sites and routes in Martinique, France,'' \emph{Advances in Geosciences}, vol. 38, pp. 1--8, 2014, doi: 10.5194/adgeo-38-1-2014.
+
+\bibitem{qgis}
+QGIS Project, ``Georeferencer,'' \emph{QGIS User Guide}, version 3.44. [Online]. Available: https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/georeferencer.html.

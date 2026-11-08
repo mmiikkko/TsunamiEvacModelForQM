@@ -1,0 +1,150 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{url}
+\begin{document}
+\title{Simulation-Based Tsunami Evacuation Modeling in Barangay Gubat, Daet, Camarines Norte: Evacuation Route Assessment and Optimization}
+\author{\makebox[\textwidth][c]{%
+\begin{minipage}[t]{0.31\textwidth}\centering
+\textbf{1\textsuperscript{st} Schenly Dianne P. Jamito}\\[2pt]
+\textit{Bachelor of Science in Information Technology}\\
+\textit{University of Camarines Norte}\\
+Daet, Camarines Norte\\
+schenlydianne@gmail.com
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}\centering
+\textbf{2\textsuperscript{nd} Jaycee Azied R. Delen}\\[2pt]
+\textit{Bachelor of Science in Information Technology}\\
+\textit{University of Camarines Norte}\\
+Daet, Camarines Norte\\
+jayceeydellen@gmail.com
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}\centering
+\textbf{3\textsuperscript{rd} Rhaiza Jem D. Abordo}\\[2pt]
+\textit{Bachelor of Science in Information Technology}\\
+\textit{University of Camarines Norte}\\
+Daet, Camarines Norte\\
+rhaizaabordo.08@gmail.com
+\end{minipage}}}
+\maketitle
+\section{Introduction}
+
+Tsunami evacuation planning requires spatial information about areas that may be inundated, the people and facilities located in those areas, and the routes and destinations available for evacuation. The Philippine Institute of Volcanology and Seismology (PHIVOLCS) publishes information on tsunami-prone coastal areas in the Philippines, while previous graph-based studies have used population locations, road networks, walking speeds, and designated safe areas to assess theoretical evacuation routes and accessibility \cite{phivolcs,peroche}. These approaches show how geographic information systems (GIS) can support preliminary evacuation planning. Their usefulness, however, depends on the quality and local validation of the spatial data and assumptions used.
+
+For barangay-scale planning, a hazard map alone does not establish whether residents can reach a safe destination within a particular time. That assessment also requires a verified study-area boundary, population distribution, connected pedestrian routes, and confirmed evacuation destinations and capacities. In the absence of these inputs, mapped hazard areas and route estimates should be treated as screening information rather than operational guidance.
+
+This project aims to develop a simulation-based decision-support model for assessing and improving tsunami evacuation routes in Barangay Gubat, Daet, Camarines Norte. The planned completed model will integrate a documented tsunami hazard layer, a screening-level estimate of offshore tsunami arrival time, a verified transportation network, appropriately aggregated population origins, and confirmed evacuation destinations and capacities. It will compare feasible route, destination, and transport-mode scenarios, and assess clearance time, congestion, unreachable groups, and shelter-capacity exceedance in relation to stated hazard-arrival scenarios. Where suitable privacy-preserving data are available, the model will also examine differences in evacuation needs for children, older adults, and people with disabilities (PWDs). Route alternatives will be evaluated against explicit performance criteria and capacity constraints, with assumptions reviewed by local stakeholders.
+
+The work is being developed iteratively. The current GIS work georeferences a population-map image, traces a provisional study-area boundary, and clips a supplied inundation layer. The current web prototype uses synthetic, schematic inputs and deterministic shortest-path assignment with a simplified capacity-delay estimate. These are preliminary components, not validated findings or the final simulation. The supplied inundation layer represents static hazard extent/depth and contains no arrival-time or flow-velocity field. The planned model will therefore distinguish this maximum-inundation screening layer from a separate, simplified estimate of offshore wave-arrival time based on water depth. This estimate will not simulate earthquake-driven wave generation, wave height, coastal run-up, currents, or time-varying inland flooding. Ten- and fifteen-minute coastal-arrival cases will be treated as hypothetical sensitivity scenarios, not as official estimates for Gubat. This staged approach follows established simulation practice: define a system boundary, abstract essential features, select a model type suited to the study goal, document assumptions, and plan verification and validation \cite{sadeghi,sargent,noaaprop}.
+
+\section{Review of Related Literature}
+
+\subsection{GIS-Based Tsunami Evacuation Assessment}
+
+GIS-based network analysis has been used to estimate evacuation accessibility by connecting population locations, road graphs, pedestrian travel speeds, and candidate safe areas. P\'eroche et al. developed a graph-based approach for Martinique that used shortest-path analysis to compare theoretical routes and travel times with a tsunami travel-time scenario \cite{peroche}. Gonz\'alez-Riancho et al. presented a broader evacuation-planning framework that combines tsunami hazard characteristics and arrival time with exposed population, shelters, road networks, warning timing, evacuation time, and possible risk-reduction measures \cite{gonzalez}. Together, these studies show why a hazard map alone is insufficient for evaluating evacuation feasibility: spatial exposure must be considered alongside route accessibility, available time, and safe destinations.
+
+\subsection{Simulation-Based Route Evaluation}
+
+Simulation studies have extended static route analysis by testing how evacuation outcomes change under different route-use, population, and transport-mode assumptions. Wang and Jia used an agent-based model and risk-assessment framework to examine route effectiveness in Seaside, Oregon; their analysis varied the share of evacuees using marked routes, evacuation mode, population size, and population distribution \cite{wangjia}. Their work supports assessing routes through scenario comparisons rather than assuming that a mapped route is effective for every demand pattern.
+
+Sadeghi et al. developed a GIS-integrated, terrain-aware discrete-event simulation (DES) decision-support framework for tsunami evacuation in Bah\'ia de Car\'aquez, Ecuador. Their study used evacuation performance measures that included average time, maximum evacuation time, and the proportion reaching safety within a stated time threshold \cite{sadeghi}. It demonstrates a direct precedent for combining spatial analysis with DES in a tsunami-planning context. The present project is narrower and at an earlier stage: it will first establish a verified Gubat network and inputs, and will not transfer the Ecuador study's parameter values or results to the Philippines.
+
+\subsection{Travel Modes and Population Mobility}
+
+Mode choice and movement assumptions affect the time required to reach safety. Wood et al. used geospatial pedestrian travel-time modeling in Hawai\'i to identify communities where walking may be a feasible alternative to vehicle use for distant-tsunami scenarios, with results evaluated across multiple walking-speed assumptions \cite{wood}. Wang and Jia likewise treated evacuation mode and population distribution as factors that can alter the effectiveness of planned routes \cite{wangjia}. This literature supports testing walking and vehicle-assisted cases separately and examining mobility-related differences. It does not provide transferable vehicle-ownership, tricycle-capacity, or road-capacity values for Barangay Gubat; those inputs require local evidence or clearly labeled sensitivity assumptions.
+
+\subsection{Research Gap and Project Positioning}
+
+Prior research establishes useful methods for graph-based route analysis, hazard-arrival comparison, simulation-based route assessment, and mobility or mode sensitivity. However, those case studies rely on site-specific hazard, road, population, and shelter data. The current Gubat project has not yet assembled and validated an equivalent local dataset: its traced boundary is provisional, its inundation layer is static, and the current network prototype uses synthetic schematic inputs. The project therefore does not claim that GIS-based tsunami evacuation modeling or GIS-integrated DES is new. Its contribution is to develop and document a Gubat-focused workflow that can integrate verified local spatial data with explicit pedestrian and vehicle scenarios, test route and destination alternatives, and report uncertainty and data limitations. The proposed offshore arrival-time screen will remain distinct from the static inundation-depth layer and will be described as illustrative unless it can be checked against an appropriate authoritative source or validated model.
+
+\section{Methodology}
+
+\subsection{Study Design}
+
+The study follows an iterative modeling process: define the decision problem and system boundary, identify essential entities and state variables, collect and document inputs, implement the model, verify its logic, validate it against suitable local evidence, and compare scenarios. The system boundary includes movement of people from population origins through an accessible transportation network to candidate evacuation destinations, plus a screening-level estimate of tsunami travel time through offshore water. The hazard component uses the shallow-water wave-speed approximation and does not model the full hydrodynamics of tsunami generation, propagation, or inundation. The current GIS and web prototype are still separate; their synthetic and provisional inputs are used to develop the workflow, not to make quantitative claims about Gubat. The intended final model will integrate verified local data, bathymetry, and GIS hazard-screening results where suitable \cite{sadeghi,sargent,noaaprop}.
+
+For the completed model, evacuation groups are the entities; their attributes include origin, group size, departure time, transport mode, and relevant movement or assistance requirements. If approved aggregate data are available, children, older adults, and people with different mobility needs will be represented as population cohorts rather than identifiable individuals. PWDs will not be treated as a single uniform group; different movement or assistance assumptions will be used only when supported by appropriate data and consultation. The state variables will include the simulation clock, group location and evacuation status, link queues or occupancy, and destination occupancy. Network links and shelters will be represented as capacity-constrained resources. This abstraction focuses on route accessibility, congestion, and destination capacity while excluding individual behavioral interactions unless reliable data and the project scope support their inclusion \cite{sadeghi}.
+
+\subsection{GIS Hazard Screening}
+
+The supplied population map was loaded into QGIS and georeferenced to WGS 84 (EPSG:4326) using four ground control points matched to coordinate-grid locations on the image. A first-order polynomial transformation was used, and the recorded control-point residuals were reviewed as a registration check \cite{qgis}. The image is a map raster; its population symbols were not converted into a point dataset. For the planned integrated model, georeferenced buildings or other approved, privacy-preserving aggregate population origins are required; the raster symbols alone cannot provide machine-readable household counts.
+
+A study-area polygon was manually digitized by tracing the visible boundary on the georeferenced image. Since this boundary was traced from an image rather than obtained from an authoritative administrative dataset, it is treated as provisional. The polygon geometry was repaired with QGIS Fix Geometries, and the repaired polygon was used as the overlay mask in a vector Clip operation on the supplied tsunami-inundation polygons. The resulting layer was inspected in QGIS alongside the population-map image. This overlay is a visual screening step; it does not calculate the number of residents exposed. Before integration, the study boundary, hazard source and scenario, pedestrian roads, population origins, and candidate destinations must be replaced or confirmed using authoritative or field-verified data. Hazard-affected links or destinations will only be excluded in scenarios according to a documented interpretation of the selected hazard layer.
+
+For an exploratory tsunami-arrival screen, the study will obtain and document a bathymetric grid covering the selected offshore source area and the coast near Gubat. A publicly available global grid such as GEBCO may be used if higher-resolution local bathymetry is unavailable; its source, version, resolution, vertical reference, and known limitations will be recorded \cite{gebco}. For each wet grid cell $k$ with water depth $h_k>0$, the approximate long-wave speed will be calculated as $c_k=\sqrt{g h_k}$, where $g=9.81\,\mathrm{m/s^2}$. Approximate arrival time at each cell will be estimated by finding the least cumulative travel time from a stated hypothetical offshore source across neighboring wet cells:
+\begin{equation}
+T_j = \min_{P:S\rightarrow j}\sum_{(k,l)\in P}\frac{\Delta s_{kl}}{(c_k+c_l)/2},
+\end{equation}
+where $P$ is a path of adjacent wet cells from source cell $S$ to target cell $j$, and $\Delta s_{kl}$ is the distance between adjacent cell centers. This depth-dependent approximation can provide a coarse offshore arrival-time surface and an animation of the estimated wave front approaching the coast. It is not a hydrodynamic simulation and will not be used to depict changing flood depth or wave flow across land. The supplied inundation polygons will remain a separate, static maximum-extent/depth overlay. The source location and time origin will be identified as scenario assumptions; the resulting times will be described as illustrative estimates, not PHIVOLCS forecasts \cite{noaaprop}.
+
+\subsection{Current Network Prototype}
+
+The current web prototype represents the transportation system as a directed graph $G=(V,E)$, where $V$ is the set of origin, junction, and destination nodes and $E$ is the set of directed path segments. Each segment has a length and an assumed capacity in people per minute. The example dataset contains two origin groups totaling 450 synthetic people, 12 directed road segments, and two example destinations with assumed capacities of 300 and 250 people. Node coordinates are schematic and are not geographic coordinates for Gubat.
+
+For each origin, the model assigns the group to the nearest reachable destination by shortest free-flow path. The current implementation uses a fixed reference walking speed of 1.15 m/s to weight path segments; origin-specific walking speed assumptions are then used to calculate reported free-flow travel time. The path assignment is therefore a shortest-path allocation, not a network-wide optimization or load-balancing procedure.
+
+For an origin group $i$, the estimated walking time is
+\begin{equation}
+t_i = \sum_{e \in p_i} \frac{L_e}{60v_i},
+\end{equation}
+where $p_i$ is its assigned path, $L_e$ is the length of segment $e$ in meters, and $v_i$ is the assumed walking speed in meters per second. The model also computes an approximate capacity-service penalty by summing the group's population divided by the capacity of each segment on its assigned path. The estimated group completion time is the walking time plus this penalty, capped at twice the walking time, and the user-selected departure delay:
+\begin{equation}
+\hat{t}_i =
+t_i + \min\left(\sum_{e \in p_i}\frac{P_i}{C_e},\,2t_i\right)+d,
+\end{equation}
+where $P_i$ is the group population, $C_e$ is the assumed segment capacity in people per minute, and $d$ is the departure delay in minutes. This is a deterministic screening estimate; it does not simulate movement or queues over time.
+
+The interface allows the user to vary the population, walking-speed, and segment-capacity multipliers; set a departure delay and comparison window; and close selected segments. It reports assigned routes, estimated completion time, the estimated number of people completing evacuation within the selected window, unreachable groups, and destination-capacity overflow. These outputs describe only the synthetic scenario inputs. They are not validated predictions or recommendations for an actual evacuation. The present implementation is a deterministic aggregate route-and-capacity estimator; it does not yet execute a discrete-event simulation with an event calendar and time-varying queues.
+
+\subsection{Planned Discrete-Event Simulation and Route Assessment}
+
+The planned integrated model will represent evacuation as a discrete-event system whose state changes at event times. After an evacuation scenario is initialized, entities will depart from their origins, request access to route segments, wait when a capacity-constrained segment is unavailable, traverse links, and arrive at a candidate destination. The simulation clock will advance to the next scheduled event, such as a departure, link entry, link exit, destination arrival, or estimated tsunami arrival at a coastal reference cell; the event routine will update the affected entity and system state and schedule any resulting event. Link queues and destination occupancy will be recorded so congestion and capacity limits are represented explicitly. Evacuation completion times will be compared with the applicable coastal-arrival deadline for each scenario. Because the available inundation layer has no time dimension, this comparison will not claim to show the time at which flooding reaches individual inland roads, buildings, or shelters. Alongside the bathymetry-based estimate, hypothetical 10- and 15-minute coastal-arrival cases will be run as sensitivity tests; these values are assumptions rather than measured or official arrival times. This event-oriented design uses standard discrete-event concepts: entities, attributes, events, state variables, resources, queues, and a simulation clock \cite{sadeghi,noaaprop}.
+
+The final model is planned to include both deterministic baseline scenarios and stochastic replications when defensible input data are available. A pseudo-random number generator will be used to sample uncertain quantities such as group departure times or walking speeds from documented distributions. Distribution parameters will be estimated from local or authoritative data where possible; otherwise, the study will report sensitivity scenarios rather than present unsupported distributions as measured facts. A recorded random seed and repeated runs will support reproducibility and comparison of variability in evacuation outcomes \cite{sadeghi}.
+
+\subsection{Mobility and Vehicle Scenarios}
+
+The planned model will compare walking-only and vehicle-assisted evacuation scenarios. The client-provided assumption of one available vehicle per household will be treated as a scenario input, not as a verified vehicle count. Tricycles will be examined as a locally relevant vehicle type based on project stakeholder input, with motorcycles and cars included as alternative modes where appropriate. A preliminary tricycle scenario may test four or five evacuating passengers per vehicle, derived from the reported assumption of five or six occupants including the driver; the driver is not counted as an evacuee seat. This capacity range must be checked against the actual vehicle type and applicable local guidance before it is used in final results.
+
+Vehicle movement will require separate inputs and capacity units from pedestrian movement, including vehicle availability by mode, passenger capacity, driver availability, travel speed, and vehicle flow capacity on each road segment. These data are not currently represented in the prototype. If household-level or mode-specific data cannot be obtained in an approved form, the study will compare clearly labeled sensitivity scenarios rather than infer the actual local fleet. Any age- or mobility-related population counts will likewise be used only in aggregate, privacy-protecting form; small groups that could risk identification will be combined into broader zones or omitted. If reliable cohort counts are unavailable, cohort proportions will be varied as assumptions and will not be presented as measured demographics.
+
+Stakeholder information indicates that Barangay Gubat connects to a four-lane national highway, while some road sections are also commonly used by pedestrians as walking space. The nominal lane count will not be treated as a direct measure of evacuation capacity. In the integrated network, highway and connecting-road segments should be classified by their observed usable width, directional lanes, pedestrian space, obstructions, and whether people and vehicles share the same space. These conditions must be confirmed through field observation and, where available, local road records. Until then, the model will test alternative effective-capacity assumptions and identify them as scenarios rather than measured traffic conditions.
+
+Route assessment will compare a baseline network with alternatives such as documented link closures and different destination assignments. The planned optimization will seek feasible assignments that reduce evacuation clearance time and avoid unreachable groups or destination-capacity exceedance, subject to route accessibility, link capacity, and shelter capacity constraints. Performance measures will include total or maximum clearance time, the number or share reaching safety within a stated planning window, link congestion, people without a feasible route, and destination overflow. The final decision criteria and any trade-offs among these measures will be specified before interpreting scenario results. The present nearest-shelter assignment is a baseline only; it is not the planned network-wide optimization.
+
+\subsection{Planned Verification and Validation}
+
+Verification will check whether the implementation follows the conceptual model: event ordering, time and unit calculations, conservation of the total population, route connectivity, capacity handling, and expected behavior in simple hand-checkable cases. The tsunami-arrival calculation will also be checked against the shallow-water speed formula at fixed depths, and tests will confirm that estimated travel time changes consistently with water depth and path length. Validation will assess whether the evacuation model is sufficiently representative for its intended planning use by comparing inputs and outputs with documented local data, established evacuation information, and review by appropriate local disaster-management stakeholders. The simplified arrival estimate can only be compared with an authoritative travel-time product or model output if one is available for a compatible source scenario and location. Without such comparison data, arrival-time displays and 10-/15-minute cases will remain illustrative sensitivity results, not validated predictions. Verification and validation will be treated as separate checks of implementation correctness and fitness for the intended real-world question \cite{sargent,noaaprop}.
+
+\subsection{Data Limitations and Validation Requirements}
+
+The current network model uses synthetic schematic origins, roads, populations, and destinations; it does not represent vehicles or demographic and mobility cohorts. The GIS boundary is provisional, and the source and scenario represented by the supplied tsunami layer must be documented before its hazard values are interpreted. The clipped inundation layer contains depth categories but no timestamp, arrival-time, or velocity field. The reported four-lane national-highway connection and pedestrian use of some road sections have not yet been verified through field measurements or local road records and are not represented in the current prototype. The proposed bathymetry-based arrival screen depends on the selected source scenario and the quality and resolution of the bathymetric grid; coarse global grids may not resolve nearshore channels, bays, or coastal features important to local propagation. It estimates offshore travel time only and does not reproduce wave generation, coastal run-up, currents, or time-varying inland flooding. Accordingly, the 10-/15-minute cases and any computed arrival-time animation must be labeled as exploratory assumptions unless validated or replaced with suitable authoritative outputs. Completing the planned project requires an authoritative boundary, documented hazard data, verified pedestrian and vehicle routes and usable road capacity, confirmed destinations and capacities, privacy-preserving aggregate population and mobility inputs, and defensible mode-specific vehicle assumptions. Any stochastic distributions, route-optimization criteria, and model parameters must also be documented and justified. The integrated model must be verified and reviewed with relevant local stakeholders before its results are interpreted for planning; it is not an emergency-navigation tool.
+\begin{thebibliography}{00}\bibitem{phivolcs}
+DOST--PHIVOLCS, ``Tsunami Prone Areas in the Philippines,'' map, revised Mar. 2013. [Online]. Available: \url{https://gisweb.phivolcs.dost.gov.ph/phivolcs_hazardmaps/00.%20Philippines/Tsunami%20Prone%20Areas_2013.pdf}. [Accessed: Oct. 18, 2026].
+
+\bibitem{peroche}
+M. P\'eroche, F. Leone, and R. Gutton, ``An accessibility graph-based model to optimize tsunami evacuation sites and routes in Martinique, France,'' \emph{Advances in Geosciences}, vol. 38, pp. 1--8, 2014, doi: 10.5194/adgeo-38-1-2014.
+
+\bibitem{sadeghi}
+A. Sadeghi, F. Aros-Vera, R. Mont\'ufar, and M. Grijalva, ``A simulation-based decision support framework for tsunami evacuation in coastal areas,'' \emph{Journal of Simulation}, published online May 20, 2026, doi: 10.1080/17477778.2026.2665721. [Online]. Available: \url{https://doi.org/10.1080/17477778.2026.2665721}.
+
+\bibitem{sargent}
+R. G. Sargent, ``Verification and validation of simulation models: An advanced tutorial,'' in \emph{Proc. 2020 Winter Simulation Conf.}, 2020, pp. 16--29, doi: 10.1109/WSC48552.2020.9384052. [Online]. Available: \url{https://www.informs-sim.org/wsc20papers/002.pdf}.
+
+\bibitem{noaaprop}
+National Oceanic and Atmospheric Administration, ``Tsunami propagation,'' NOAA JetStream. [Online]. Available: \url{https://www.noaa.gov/jetstream/tsunamis/tsunami-propagation}.
+
+\bibitem{gonzalez}
+P. Gonz\'alez-Riancho, I. Aguirre-Ayerbe, I. Aniel-Quiroga, S. Abad, M. Gonz\'alez, J. Larreynaga, F. Gavidia, O. Q. Guti\'errez, J. A. \'Alvarez-G\'omez, and R. Medina, ``Tsunami evacuation modelling as a tool for risk reduction: Application to the coastal area of El Salvador,'' \emph{Nat. Hazards Earth Syst. Sci.}, vol. 13, pp. 3249--3270, 2013, doi: 10.5194/nhess-13-3249-2013. [Online]. Available: \url{https://nhess.copernicus.org/articles/13/3249/2013/}.
+
+\bibitem{wangjia}
+Z. Wang and G. Jia, ``Simulation-based and risk-informed assessment of the effectiveness of tsunami evacuation routes using agent-based modeling: A case study of Seaside, Oregon,'' \emph{Int. J. Disaster Risk Sci.}, vol. 13, no. 1, pp. 66--86, 2022, doi: 10.1007/s13753-021-00387-x. [Online]. Available: \url{https://link.springer.com/article/10.1007/s13753-021-00387-x}.
+
+\bibitem{wood}
+N. J. Wood, J. Jones, J. Peters, and K. Richards, ``Pedestrian evacuation modeling to reduce vehicle use for distant tsunami evacuations in Hawai'i,'' \emph{Int. J. Disaster Risk Reduct.}, vol. 28, pp. 271--283, 2018, doi: 10.1016/j.ijdrr.2018.03.009. [Online]. Available: \url{https://pubs.usgs.gov/publication/70196715}.
+
+\bibitem{qgis}
+QGIS Project, ``Georeferencer,'' \emph{QGIS User Guide}, version 3.44. [Online]. Available: \url{https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/georeferencer.html}.
+
+\bibitem{gebco}
+General Bathymetric Chart of the Oceans (GEBCO), ``Gridded bathymetry data: GEBCO\_2026 Grid.'' [Online]. Available: \url{https://www.gebco.net/data-products-gridded-bathymetry-data/gebco2026-grid}.
+\end{thebibliography}
+\end{document}
