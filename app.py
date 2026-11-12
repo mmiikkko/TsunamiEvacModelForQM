@@ -15,6 +15,38 @@ st.warning(
     "Do not use sample results for real-world decisions. Replace data and validate the model with local authorities."
 )
 
+map_pdf_path = Path(__file__).parent / "gubat_tsunami_exposure_map.pdf"
+map_preview_path = Path(__file__).parent / "gubat_tsunami_exposure_map_preview.png"
+with st.expander("View Gubat Tsunami Exposure Map", expanded=True):
+    st.caption(
+        "Static QGIS exposure-map export for visual reference. It is not a moving tsunami simulation "
+        "and is not connected to the synthetic evacuation scenarios below."
+    )
+    if map_pdf_path.exists():
+        map_pdf = map_pdf_path.read_bytes()
+        st.download_button(
+            "Download exposure map (PDF)",
+            data=map_pdf,
+            file_name="gubat_tsunami_exposure_map.pdf",
+            mime="application/pdf",
+        )
+        if map_preview_path.exists():
+            st.image(
+                map_preview_path,
+                caption="Static QGIS exposure map · for visual reference",
+                use_container_width=True,
+            )
+        else:
+            st.info(
+                "The image preview is missing. The PDF is still available to download; "
+                "restore `gubat_tsunami_exposure_map_preview.png` beside `app.py` for the in-app preview."
+            )
+    else:
+        st.info(
+            "The map PDF is not in the project folder yet. Export it from the QGIS layout and "
+            "save it as `gubat_tsunami_exposure_map.pdf` beside `app.py`."
+        )
+
 try:
     inputs = load_inputs(str(Path(__file__).parent / "data"))
 except Exception as exc:

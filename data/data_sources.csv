@@ -1,2 +1,3 @@
 dataset,source,date_received,coverage_or_resolution,confidence,notes
 All sample CSVs,Synthetic demonstration data,2026-10-03,Schematic; not geographically accurate,Low,Replace and document verified local sources before interpreting outputs
+OSM road GeoPackage,OpenStreetMap contributors,2026-10-16,"Camarines Norte extract; includes Daet-Basud corridor; 5,276 line features; EPSG:4326",Preliminary; completeness and local access unverified,"Starting road-network source only; verify connectivity, pedestrian access, sidewalks, road attributes, closures, and receiving sites; provide © OpenStreetMap contributors attribution and follow ODbL"

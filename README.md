@@ -2,6 +2,10 @@
 
 An early, local web prototype for comparing evacuation scenarios. It is designed so the model and interface can be started with synthetic example data, then updated as verified Barangay Gubat data becomes available.
 
+See [ROADMAP.md](ROADMAP.md) for the agreed study extent, pending data decisions, implementation stages, and next actions.
+
+The app also displays `gubat_tsunami_exposure_map_preview.png` and offers `gubat_tsunami_exposure_map.pdf` for download. These are static exports from the QGIS layout, for visual reference only; they are not an animated tsunami model and are not connected to the synthetic evacuation calculations.
+
 ## Important scope note
 
 The included network and population are **synthetic demonstration data**, not measurements or official recommendations for Barangay Gubat. The prototype models movement over a road graph; it does not simulate tsunami generation, wave propagation, inundation, warning issuance, or real-time navigation. Do not use its sample outputs for emergency decisions. Replace the example data and review assumptions with the Barangay and Daet MDRRMO before interpreting results.
@@ -13,6 +17,10 @@ The included network and population are **synthetic demonstration data**, not me
 - Request from the MPDO: geotagged house/building points and the total population of Barangay Gubat. If permitted, also request aggregated occupants by purok or building to distribute population across the points. A barangay total alone cannot determine how many people begin at each house. Do not include names or household-identifying attributes in the model dataset.
 - OpenStreetMap can provide a starting pedestrian and road network. Verify connectivity, pedestrian access, road width, sidewalks, gates, and closures with field observation and local officials; OSM coverage is community mapped and should not be presented as exact without validation. Attribute “© OpenStreetMap contributors” and follow the ODbL terms when using its data.
 
+## Evacuation-network study extent
+
+The client recommends evaluating evacuation movement beyond Barangay Gubat, toward southern Daet and potentially Basud. The exposure map may remain focused on Gubat, while the evacuation-network analysis should cover the connected road corridors and any confirmed receiving areas. A Camarines Norte OpenStreetMap roads GeoPackage is available at `data/raw/osm_camarines_norte_roads.gpkg` (5,276 line features, EPSG:4326; dataset metadata timestamp 2026-10-16). It is a preliminary network source, not an authoritative or field-verified route inventory. Basud locations must remain candidate destinations until the client or responsible local authorities identify appropriate sites and confirm access, safety, and usable capacity.
+
 ## Provisional client assumptions to review
 
 These are scenario inputs pending confirmation, not validated local measurements:
@@ -21,7 +29,7 @@ These are scenario inputs pending confirmation, not validated local measurements
 - Vehicle access: the one-vehicle-per-family statement is an assumption to check. Ask for aggregate vehicle ownership/availability, driver availability, vehicle seats, and pickup/boarding arrangements before modeling vehicle evacuation.
 - Shelter space: the Sphere Handbook 2018 shelter guidance states a minimum 3.5 m² living space per person in the relevant warm-climate guidance, excluding cooking, bathing, and sanitation areas. The client's 2.5 m²/person assumption is different and must not be labelled the Sphere minimum. Keep both as clearly named scenarios only if advisers and responsible local authorities approve the comparison. At 3.5 m²/person, 50 people require 175 m² of usable covered living area; at 2.5 m²/person, 50 require 125 m². Actual safe capacity must also account for usable area, facility condition, access/egress, and applicable local requirements. A blanket “50 people per room” assumption needs room-by-room confirmation.
 
-The model currently does not implement the supplied shapefile, OpenStreetMap retrieval, household points, household sizes, vehicles, or room-level shelter capacity. Integrate these only after choosing the approved assumptions and obtaining the MPDO data.
+The model currently does not integrate the supplied hazard polygons, the local OpenStreetMap road GeoPackage, household points, household sizes, vehicles, or room-level shelter capacity. Integrate and validate these inputs before interpreting route or capacity outputs for Gubat, southern Daet, or Basud.
 
 ## Start locally
 
@@ -54,11 +62,12 @@ The prototype routes each origin group to its nearest reachable shelter by free-
 
 ## Suggested next improvements
 
-1. Confirm the local evacuation plan, actual road/path network, shelter locations/capacities, and official hazard information with the Barangay, Daet MDRRMO, and PHIVOLCS.
-2. Replace the schematic network and synthetic populations, keeping an untouched copy of every source dataset.
-3. Add validated assumptions and uncertainty ranges for walking speeds, departure delay, assistance, road capacity, and warning time.
-4. Compare baseline routes and carefully defined alternatives; ask local officials to review the assumptions and outputs.
-5. If traffic interactions become essential, evaluate adding SUMO. Display supplied inundation polygons as a separate sourced hazard layer rather than implying this evacuation model generated them.
+1. Clip and inspect the available road network for the Gubat–southern Daet–potential Basud corridor; verify pedestrian access, connectivity, bridges, sidewalks, closures, and candidate receiving sites with the client and local authorities.
+2. Confirm shelter locations and capacities, local evacuation plans, and official hazard interpretations with the Barangay, Daet MDRRMO, Basud representatives as relevant, and PHIVOLCS.
+3. Replace the schematic network and synthetic populations, keeping an untouched copy of every source dataset.
+4. Add validated assumptions and uncertainty ranges for walking speeds, departure delay, assistance, road capacity, and warning time.
+5. Compare baseline routes and carefully defined alternatives; ask local officials to review the assumptions and outputs.
+6. If traffic interactions become essential, evaluate adding SUMO. Display supplied inundation polygons as a separate sourced hazard layer rather than implying this evacuation model generated them.
 
 ## Project layout
 
