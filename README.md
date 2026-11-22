@@ -4,6 +4,12 @@ An early, local web prototype for comparing evacuation scenarios. It is designed
 
 See [ROADMAP.md](ROADMAP.md) for the agreed study extent, pending data decisions, implementation stages, and next actions.
 
+## Current geographic-data milestone
+
+The project includes a preliminary Daet boundary and OSM road/path clip: `data/daet_barangays.gpkg` (25 barangays), `data/daet_boundary.gpkg` (one dissolved outline), and `data/daet_roads.gpkg` (1,102 features). A broader screening extent is also available in `data/daet_basud_barangays.gpkg` (25 Daet + 29 Basud barangays), `data/daet_basud_boundary.gpkg` (one dissolved outline), and `data/daet_basud_roads.gpkg` (1,551 features). The broader clip includes every mapped road/path within those municipal boundaries; it is not a selected or validated evacuation corridor and does not imply that a Basud shelter has been confirmed. Attribute coverage and source limitations are documented in [`data/daet_roads_audit.md`](data/daet_roads_audit.md); a preliminary vertex connectivity screen is in [`data/daet_basud_connectivity_audit.md`](data/daet_basud_connectivity_audit.md). Its 136 preliminary components have a QGIS navigation index at `data/daet_basud_component_review.csv`; its review fields remain unfilled. The overview map is `output/daet_basud_road_review.png` and [QGIS review steps](data/daet_basud_review_instructions.md) explain how to inspect it without treating the components as approved routes.
+
+These GeoPackages are not yet connected to the app's evacuation calculations. The app continues to use its schematic R1-R12 network and synthetic scenario inputs until routing, population, destination, and local validation work is completed.
+
 The app also displays `gubat_tsunami_exposure_map_preview.png` and offers `gubat_tsunami_exposure_map.pdf` for download. These are static exports from the QGIS layout, for visual reference only; they are not an animated tsunami model and are not connected to the synthetic evacuation calculations.
 
 ## Important scope note
