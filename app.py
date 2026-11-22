@@ -1,5 +1,7 @@
 from pathlib import Path
+import math
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import networkx as nx
@@ -69,6 +71,9 @@ try:
     origin_zones = pd.read_csv(Path(__file__).parent / "data" / "origin_zones.csv")
     gubat_zone = origin_zones.loc[origin_zones["zone_id"].astype(str) == "GUBAT"].iloc[0]
     gubat_population_total = int(gubat_zone["population_total"])
+    origin_candidates = pd.read_csv(Path(__file__).parent / "data" / "origin_zone_candidates.csv")
+    include_candidate = origin_candidates["include_in_gubat_origins"].astype(str).str.lower().isin({"true", "1", "yes"})
+    origin_candidates = origin_candidates.loc[include_candidate].copy()
 except Exception as exc:
     st.error(f"Could not load the project data: {exc}")
     st.stop()
@@ -85,11 +90,97 @@ with st.sidebar:
     st.caption("Adjust these values only as scenario assumptions. Replace them with evidence when available.")
     st.divider()
     st.subheader("Synthetic group scenario")
-    synthetic_population_scale = st.slider("Aggregate population multiplier", 0.5, 1.5, 1.0, 0.05)
+    custom_origins = list(st.session_state.get("scenario_custom_origins", []))
+    pending_origin_node_id = st.session_state.get("pending_origin_node_id")
+    if pending_origin_node_id:
+        st.info(f"Selected candidate origin road node: {pending_origin_node_id}")
+    with st.expander("Add a named origin area", expanded=bool(pending_origin_node_id)):
+        st.caption("Choose a representative road node on the map first. This creates an aggregate scenario origin, not a household point or a mapped neighborhood boundary.")
+        if custom_origins:
+            st.caption("User-created origin labels and road-node anchors last for this app session; add them again after a server restart.")
+        custom_origin_name = st.text_input("Origin area name", key="custom_origin_name_input", placeholder="e.g., Borabod north-side homes")
+        can_add_origin = bool(pending_origin_node_id and custom_origin_name.strip())
+        if st.button("Add this origin area", key="add_custom_origin", disabled=not can_add_origin):
+            base = "".join(character if character.isalnum() else "_" for character in custom_origin_name.strip().upper()).strip("_")
+            origin_id = f"MAP_{base or 'ORIGIN'}"
+            used_ids = {str(item["zone_id"]) for item in custom_origins}
+            suffix = 2
+            while origin_id in used_ids or origin_id in set(origin_candidates["zone_id"].astype(str)):
+                origin_id = f"MAP_{base or 'ORIGIN'}_{suffix}"
+                suffix += 1
+            custom_origins.append({"zone_id": origin_id, "zone_name": custom_origin_name.strip(), "map_label": custom_origin_name.strip(), "road_node_id": str(pending_origin_node_id)})
+            st.session_state["scenario_custom_origins"] = custom_origins
+            st.session_state["selected_origin_ids_widget"] = [
+                *st.session_state.get("selected_origin_ids_widget", origin_candidates["zone_id"].astype(str).tolist()),
+                origin_id,
+            ]
+            st.session_state.pop("pending_origin_node_id", None)
+            st.rerun()
+
+    origin_labels = {
+        **dict(zip(origin_candidates["zone_id"].astype(str), origin_candidates["zone_name"].astype(str))),
+        **{str(item["zone_id"]): str(item["zone_name"]) for item in custom_origins},
+    }
+    all_origin_ids = list(origin_labels)
+    origin_widget_key = "selected_origin_ids_widget"
+    if origin_widget_key not in st.session_state:
+        st.session_state[origin_widget_key] = all_origin_ids.copy()
+    selected_origin_ids = st.multiselect(
+        "Origin areas included", all_origin_ids,
+        key=origin_widget_key,
+        format_func=lambda zone_id: origin_labels[str(zone_id)],
+        help="Select the named origin areas that will contribute synthetic evacuee groups.",
+    )
+    scenario_people_limit = st.number_input(
+        "Maximum people in this run", min_value=1, max_value=100_000,
+        value=gubat_population_total, step=100,
+        help=f"Overall scenario cap. The only current population reference is the provisional Gubat total of {gubat_population_total:,}; amounts beyond it are user-entered assumptions for a wider study area.",
+    )
+    origin_people_caps = {}
+    remaining_people = int(scenario_people_limit)
+    if selected_origin_ids:
+        default_cap, remainder = divmod(remaining_people, len(selected_origin_ids))
+        for index, zone_id in enumerate(selected_origin_ids):
+            candidate_name = origin_labels[str(zone_id)]
+            available = max(remaining_people, 0)
+            default_value = min(available, default_cap + (1 if index < remainder else 0))
+            cap_key = f"origin_people_cap_{zone_id}"
+            if int(st.session_state.get(cap_key, default_value)) > available:
+                st.session_state[cap_key] = available
+            origin_people_caps[zone_id] = int(st.number_input(
+                f"Scenario evacuees · {candidate_name}", min_value=0, max_value=available,
+                value=default_value, step=50, key=cap_key,
+            ))
+            remaining_people -= origin_people_caps[zone_id]
+    else:
+        st.warning("Select at least one origin area to generate a scenario.")
     small_party_share_pct = st.slider("Small-party share (%) · assumption", 0, 50, 15, 5)
     departure_window_min = st.slider("Random departure window (minutes)", 0, 60, 15, 1)
-    zone_balance = st.slider("Zone share balance (1 uneven · 10 even)", 1, 10, 4)
     random_seed = st.number_input("Random seed (repeatable run)", min_value=0, max_value=2_147_483_647, value=2026, step=1)
+    st.caption("Per-area amounts are user-set scenario assumptions, not measured population counts. Their sum cannot exceed the run cap.")
+    origin_pin_shares = {}
+    scenario_destination_ids = list(dict.fromkeys(
+        str(node_id) for node_id in st.session_state.get("candidate_destination_node_ids", [])
+    ))
+    if scenario_destination_ids and selected_origin_ids:
+        st.divider()
+        st.subheader("Send each origin to pins")
+        st.caption("Set the planned share of each origin assigned to each pin. Unassigned shares remain unassigned; area shares are scenario choices, not observed movement patterns.")
+        for origin_id in selected_origin_ids:
+            origin_name = origin_labels[str(origin_id)]
+            with st.expander(origin_name, expanded=False):
+                shares = {}
+                share_cols = st.columns(2)
+                for pin_index, node_id in enumerate(scenario_destination_ids):
+                    pin_key = f"origin_pin_share_{origin_id}_{node_id}"
+                    shares[node_id] = int(share_cols[pin_index % 2].number_input(
+                        f"Pin {pin_index + 1} share (%)",
+                        min_value=0, max_value=100, value=0, step=5, key=pin_key,
+                        help=f"Share of {origin_name}'s scenario evacuees assigned to road node {node_id}.",
+                    ))
+                origin_pin_shares[origin_id] = shares
+                share_total = sum(shares.values())
+                st.caption(f"Configured: {share_total}% · {max(100 - share_total, 0)}% remains intentionally unassigned" if share_total <= 100 else f"Configured: {share_total}% · reduce this to 100% or less")
 
 result = run_simulation(
     inputs,
@@ -120,6 +211,120 @@ def polygon_parts(geometry):
     if geometry["type"] == "MultiPolygon":
         return geometry["coordinates"]
     return []
+
+
+def point_in_ring(lon, lat, ring):
+    """Ray-casting point-in-ring check for the local EPSG:4326 hazard overlay."""
+    inside = False
+    if not ring:
+        return False
+    x1, y1 = ring[-1][0], ring[-1][1]
+    for point in ring:
+        x2, y2 = point[0], point[1]
+        crosses = (y1 > lat) != (y2 > lat)
+        if crosses:
+            crossing_lon = (x2 - x1) * (lat - y1) / (y2 - y1) + x1
+            if lon < crossing_lon:
+                inside = not inside
+        x1, y1 = x2, y2
+    return inside
+
+
+def point_in_polygon(lon, lat, rings):
+    """Return whether a point lies in a polygon, excluding its interior holes."""
+    if not rings or not point_in_ring(lon, lat, rings[0]):
+        return False
+    return not any(point_in_ring(lon, lat, hole) for hole in rings[1:])
+
+
+def route_hazard_overlap(route_nodes, routing_graph, node_lookup, hazard_features, sample_spacing_m=5.0):
+    """Estimate route length within the static maximum-inundation polygons by sampling."""
+    hazard_polygons = []
+    for feature in hazard_features:
+        depth_class = str(feature.get("properties", {}).get("Inun_depth", "Unclassified"))
+        for rings in polygon_parts(feature["geometry"]):
+            if not rings or not rings[0]:
+                continue
+            outer = rings[0]
+            bounds = (
+                min(point[0] for point in outer), min(point[1] for point in outer),
+                max(point[0] for point in outer), max(point[1] for point in outer),
+            )
+            hazard_polygons.append((depth_class, rings, bounds))
+
+    distance_by_class = {}
+    for start_node, end_node in zip(route_nodes, route_nodes[1:]):
+        start = node_lookup.loc[start_node]
+        end = node_lookup.loc[end_node]
+        lon1, lat1 = float(start["lon"]), float(start["lat"])
+        lon2, lat2 = float(end["lon"]), float(end["lat"])
+        edge_length_m = float(routing_graph[start_node][end_node].get("length_m", 0.0))
+        if edge_length_m <= 0:
+            continue
+        edge_bounds = (min(lon1, lon2), min(lat1, lat2), max(lon1, lon2), max(lat1, lat2))
+        candidates = [
+            polygon for polygon in hazard_polygons
+            if polygon[2][0] <= edge_bounds[2] and polygon[2][2] >= edge_bounds[0]
+            and polygon[2][1] <= edge_bounds[3] and polygon[2][3] >= edge_bounds[1]
+        ]
+        if not candidates:
+            continue
+        samples = max(1, math.ceil(edge_length_m / sample_spacing_m))
+        counts = {}
+        for index in range(samples + 1):
+            fraction = index / samples
+            lon = lon1 + (lon2 - lon1) * fraction
+            lat = lat1 + (lat2 - lat1) * fraction
+            classes_here = {
+                depth_class for depth_class, rings, bounds in candidates
+                if bounds[0] <= lon <= bounds[2] and bounds[1] <= lat <= bounds[3]
+                and point_in_polygon(lon, lat, rings)
+            }
+            for depth_class in classes_here:
+                counts[depth_class] = counts.get(depth_class, 0) + 1
+        for depth_class, count in counts.items():
+            distance_by_class[depth_class] = distance_by_class.get(depth_class, 0.0) + edge_length_m * count / (samples + 1)
+    return distance_by_class
+
+
+def closest_nodes_between_components(source_component, destination_components, component_nodes, node_lookup):
+    """Find the closest mapped-node pair across disconnected routing components for review only."""
+    source_nodes = component_nodes.get(source_component, set())
+    target_nodes = set().union(*(component_nodes.get(component, set()) for component in destination_components))
+    if not source_nodes or not target_nodes:
+        return None
+    latitude_reference = float(node_lookup.loc[list(source_nodes | target_nodes), "lat"].mean())
+    lon_scale = 111_320.0 * math.cos(math.radians(latitude_reference))
+    lat_scale = 111_320.0
+    source_ids = list(source_nodes)
+    target_ids = list(target_nodes)
+    source_xy = np.array([
+        [float(node_lookup.loc[node_id, "lon"]) * lon_scale,
+         float(node_lookup.loc[node_id, "lat"]) * lat_scale]
+        for node_id in source_ids
+    ])
+    target_xy = np.array([
+        [float(node_lookup.loc[node_id, "lon"]) * lon_scale,
+         float(node_lookup.loc[node_id, "lat"]) * lat_scale]
+        for node_id in target_ids
+    ])
+    best = None
+    for offset in range(0, len(source_ids), 128):
+        chunk = source_xy[offset:offset + 128]
+        squared_distances = (
+            (chunk[:, None, 0] - target_xy[None, :, 0]) ** 2
+            + (chunk[:, None, 1] - target_xy[None, :, 1]) ** 2
+        )
+        flat_index = int(np.argmin(squared_distances))
+        row_index, target_index = np.unravel_index(flat_index, squared_distances.shape)
+        distance = math.sqrt(float(squared_distances[row_index, target_index]))
+        if best is None or distance < best["gap_m"]:
+            best = {
+                "gap_m": distance,
+                "source_node": source_ids[offset + int(row_index)],
+                "target_node": target_ids[int(target_index)],
+            }
+    return best
 
 
 def add_polygon_layer(fig, features, fill_color, line_color, name, show_legend=False, fill_opacity=0.35):
@@ -207,16 +412,20 @@ def add_road_layer(fig, road_edges, road_nodes, bounds):
             ))
 
 
-def remember_map_destination():
-    """Save a clicked graph-node marker as the candidate receiving point."""
+def remember_map_point_selection():
+    """Save a clicked graph node as a staged origin anchor or receiving pin."""
     event = st.session_state.get("scenario_geographic_map", {})
     selection = event.get("selection", {}) if hasattr(event, "get") else {}
     points = selection.get("points", []) if hasattr(selection, "get") else []
     for point in points:
         custom = point.get("customdata")
-        if isinstance(custom, (list, tuple)) and len(custom) >= 2 and custom[0] == "CANDIDATE_DESTINATION_NODE":
-            st.session_state["candidate_destination_node_id"] = str(custom[1])
-            return
+        if isinstance(custom, (list, tuple)) and len(custom) >= 2:
+            if custom[0] == "CANDIDATE_DESTINATION_NODE":
+                st.session_state["candidate_destination_node_id"] = str(custom[1])
+                return
+            if custom[0] == "CANDIDATE_ORIGIN_NODE":
+                st.session_state["pending_origin_node_id"] = str(custom[1])
+                return
 
 
 try:
@@ -249,6 +458,36 @@ try:
     if zone_anchors["road_node_id"].isna().any():
         missing_access = zone_anchors.loc[zone_anchors["road_node_id"].isna(), "zone_name"].tolist()
         raise ValueError(f"No candidate road-node connection is recorded for: {missing_access}")
+    road_node_lookup = map_data["road_nodes"].assign(
+        node_id=lambda frame: frame["node_id"].astype(str)
+    ).set_index("node_id")
+    custom_anchor_rows = []
+    for custom_origin in custom_origins:
+        custom_node_id = str(custom_origin["road_node_id"])
+        if custom_node_id not in road_node_lookup.index:
+            continue
+        selected_node = road_node_lookup.loc[custom_node_id]
+        row = zone_anchors.iloc[0].to_dict()
+        row.update({
+            "zone_id": str(custom_origin["zone_id"]),
+            "zone_name": str(custom_origin["zone_name"]),
+            "map_label": str(custom_origin.get("map_label", custom_origin["zone_name"])),
+            "locality_type": "user-defined aggregate origin",
+            "lon": float(selected_node["lon"]),
+            "lat": float(selected_node["lat"]),
+            "road_node_id": custom_node_id,
+            "road_lon": float(selected_node["lon"]),
+            "road_lat": float(selected_node["lat"]),
+            "anchor_to_road_m": 0.0,
+            "candidate_road_name": "; ".join(sorted(
+                name for name in node_road_names.get(custom_node_id, set()) if name and name.lower() != "nan"
+            )) or "Unnamed OSM road/path",
+            "road_access_status": "USER_SELECTED_REPRESENTATIVE_NODE_NOT_FIELD_VERIFIED",
+            "notes": "User-defined aggregate scenario origin placed at an existing road graph node; not a household point or official zone boundary.",
+        })
+        custom_anchor_rows.append(row)
+    if custom_anchor_rows:
+        zone_anchors = pd.concat([zone_anchors, pd.DataFrame(custom_anchor_rows)], ignore_index=True)
     # Report raw geometric graph connectivity without treating it as verified
     # pedestrian connectivity. The exported OSM graph may contain unmapped gaps.
     candidate_graph = nx.Graph()
@@ -296,19 +535,35 @@ try:
         str(row.zone_id): candidate_zone_component[str(row.road_node_id)][0]
         for row in zone_anchors.itertuples(index=False)
     }
-    synthetic_population = int(round(gubat_population_total * synthetic_population_scale))
-    synthetic_groups = scenario_generation.generate_synthetic_groups(
-        total_people=synthetic_population,
-        small_party_share=small_party_share_pct / 100.0,
-        departure_window_min=departure_window_min,
-        seed=int(random_seed),
+    selected_zone_anchors = zone_anchors.loc[zone_anchors["zone_id"].astype(str).isin(selected_origin_ids)].copy()
+    groups_by_area = []
+    for area_index, origin in enumerate(selected_zone_anchors.to_dict("records")):
+        people_cap = int(origin_people_caps.get(str(origin["zone_id"]), 0))
+        if people_cap <= 0:
+            continue
+        area_groups = scenario_generation.generate_synthetic_groups(
+            total_people=people_cap,
+            small_party_share=small_party_share_pct / 100.0,
+            departure_window_min=departure_window_min,
+            seed=int(random_seed) + area_index * 10_007,
+        )
+        area_groups["group_id"] = [f"{origin['zone_id']}-{group_id}" for group_id in area_groups["group_id"]]
+        area_groups["zone_id"] = str(origin["zone_id"])
+        area_groups["zone"] = str(origin["zone_name"])
+        groups_by_area.append(area_groups)
+    if not groups_by_area:
+        raise ValueError("Set at least one selected origin area's evacuee cap above zero")
+    synthetic_groups = pd.concat(groups_by_area, ignore_index=True).sort_values(
+        ["departure_min", "group_id"], ignore_index=True
     )
-    synthetic_groups, zone_summary = scenario_generation.allocate_groups_to_zones(
-        synthetic_groups,
-        zone_anchors,
-        seed=int(random_seed),
-        zone_balance=zone_balance,
+    zone_people = synthetic_groups.groupby("zone_id", as_index=False).agg(
+        groups=("group_id", "count"), people=("group_size", "sum")
     )
+    zone_summary = zone_anchors.merge(zone_people, on="zone_id", how="left").fillna({"groups": 0, "people": 0})
+    zone_summary["groups"] = zone_summary["groups"].astype(int)
+    zone_summary["people"] = zone_summary["people"].astype(int)
+    scenario_people_total = max(int(synthetic_groups["group_size"].sum()), 1)
+    zone_summary["simulated_share_pct"] = (zone_summary["people"] / scenario_people_total * 100).round(1)
     zone_access = zone_anchors.set_index("zone_id")
     synthetic_groups["road_node_id"] = synthetic_groups["zone_id"].map(zone_access["road_node_id"])
     zone_summary["graph_component_vertices"] = zone_summary["road_node_id"].map(
@@ -329,8 +584,173 @@ except Exception as exc:
 map_node_lookup = map_data["road_nodes"].assign(
     node_id=lambda frame: frame["node_id"].astype(str)
 ).set_index("node_id")
-route_result = None
-route_error = None
+route_component_for_node = {}
+route_component_size = {}
+route_component_nodes = {}
+for component_index, component in enumerate(nx.connected_components(routing_graph), start=1):
+    members = set(component)
+    route_component_nodes[component_index] = members
+    for node_id in members:
+        route_component_for_node[node_id] = component_index
+        route_component_size[node_id] = len(members)
+
+destination_node_ids = list(dict.fromkeys(
+    str(node_id) for node_id in st.session_state.get("candidate_destination_node_ids", [])
+    if str(node_id) in map_node_lookup.index
+))
+destination_capacity_remaining = {
+    node_id: int(st.session_state.get(f"receiving_capacity_{node_id}", 0))
+    for node_id in destination_node_ids
+}
+destination_path_options = {}
+for origin in zone_summary.loc[zone_summary["people"] > 0].to_dict("records"):
+    origin_node_id = str(origin["road_node_id"])
+    options = []
+    for destination_node_id in destination_node_ids:
+        if origin_node_id not in routing_graph or destination_node_id not in routing_graph:
+            continue
+        if not nx.has_path(routing_graph, origin_node_id, destination_node_id):
+            continue
+        path_nodes = nx.shortest_path(
+            routing_graph, origin_node_id, destination_node_id, weight="free_flow_min"
+        )
+        path_length = sum(float(routing_graph[a][b].get("length_m", 0.0)) for a, b in zip(path_nodes, path_nodes[1:]))
+        path_time = sum(float(routing_graph[a][b].get("free_flow_min", 0.0)) for a, b in zip(path_nodes, path_nodes[1:]))
+        options.append((path_time, path_length, destination_node_id, path_nodes))
+    destination_path_options[str(origin["zone_id"])] = options
+
+route_assignments = []
+unassigned_by_origin = {}
+route_summary = {}
+origin_assignment_totals = {}
+origin_assignment_by_pin = {}
+for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict("records"):
+    zone_id = str(group["zone_id"])
+    options = destination_path_options.get(zone_id, [])
+    shares = origin_pin_shares.get(zone_id, {})
+    share_total = sum(int(share) for share in shares.values())
+    reachable_destination_ids = {item[2] for item in options}
+    unreachable_share_pct = sum(
+        int(shares.get(destination_id, 0))
+        for destination_id in destination_node_ids
+        if int(shares.get(destination_id, 0)) > 0 and destination_id not in reachable_destination_ids
+    )
+    origin_total = int(zone_summary.loc[zone_summary["zone_id"].astype(str) == zone_id, "people"].iloc[0])
+    origin_assignment_totals.setdefault(zone_id, 0)
+    origin_assignment_by_pin.setdefault(zone_id, {})
+    unassigned_by_origin.setdefault(zone_id, {"network": 0, "capacity": 0, "allocation": 0, "invalid": 0, "groups": 0})
+    group_size = int(group["group_size"])
+    if share_total > 100:
+        unassigned_by_origin[zone_id]["invalid"] += group_size
+        unassigned_by_origin[zone_id]["groups"] += 1
+        continue
+    target_total = int(round(origin_total * share_total / 100.0))
+    if share_total <= 0 or origin_assignment_totals[zone_id] >= target_total:
+        unassigned_by_origin[zone_id]["allocation"] += group_size
+        unassigned_by_origin[zone_id]["groups"] += 1
+        continue
+    configured_options = [item for item in options if int(shares.get(item[2], 0)) > 0]
+    if not configured_options:
+        unassigned_by_origin[zone_id]["network"] += group_size
+        unassigned_by_origin[zone_id]["groups"] += 1
+        continue
+    if origin_assignment_totals[zone_id] + group_size > target_total:
+        unassigned_by_origin[zone_id]["allocation"] += group_size
+        unassigned_by_origin[zone_id]["groups"] += 1
+        continue
+    fitting_options = [
+        item for item in configured_options
+        if destination_capacity_remaining.get(item[2], 0) >= group_size
+        and origin_assignment_by_pin[zone_id].get(item[2], 0) < origin_total * int(shares[item[2]]) / 100.0
+    ]
+    if not fitting_options:
+        capacity_fits = [item for item in configured_options if destination_capacity_remaining.get(item[2], 0) >= group_size]
+        reason = "network" if capacity_fits and unreachable_share_pct > 0 else "allocation" if capacity_fits else "capacity"
+        unassigned_by_origin[zone_id][reason] += group_size
+        unassigned_by_origin[zone_id]["groups"] += 1
+        continue
+    path_time, path_length, destination_node_id, path_nodes = max(
+        fitting_options,
+        key=lambda item: (origin_total * int(shares[item[2]]) / 100.0 - origin_assignment_by_pin[zone_id].get(item[2], 0), -item[0]),
+    )
+    destination_capacity_remaining[destination_node_id] -= group_size
+    origin_assignment_totals[zone_id] += group_size
+    origin_assignment_by_pin[zone_id][destination_node_id] = origin_assignment_by_pin[zone_id].get(destination_node_id, 0) + group_size
+    assignment_key = (zone_id, destination_node_id)
+    route_summary.setdefault(assignment_key, {
+        "zone_id": zone_id,
+        "origin": str(group["zone"]),
+        "destination_node_id": destination_node_id,
+        "nodes": path_nodes,
+        "time_min": path_time,
+        "length_m": path_length,
+        "people": 0,
+        "groups": 0,
+    })
+    route_summary[assignment_key]["people"] += group_size
+    route_summary[assignment_key]["groups"] += 1
+
+for assignment in route_summary.values():
+    path_nodes = assignment["nodes"]
+    assignment["hazard_overlap_m_by_class"] = route_hazard_overlap(
+        path_nodes, routing_graph, map_node_lookup, map_data["hazard"]
+    )
+    assignment["named_roads"] = list(dict.fromkeys(
+        str(routing_graph[a][b].get("name", "")).strip()
+        for a, b in zip(path_nodes, path_nodes[1:])
+        if str(routing_graph[a][b].get("name", "")).strip()
+        and str(routing_graph[a][b].get("name", "")).strip().lower() != "nan"
+    ))
+    route_assignments.append(assignment)
+
+unrouted_origins = []
+active_origin_lookup = zone_summary.set_index("zone_id")
+for zone_id, counts in unassigned_by_origin.items():
+    if counts["network"] + counts["capacity"] + counts["allocation"] + counts["invalid"] == 0:
+        continue
+    origin = active_origin_lookup.loc[zone_id]
+    origin_node_id = str(origin["road_node_id"])
+    origin_component = route_component_for_node.get(origin_node_id)
+    target_components = {
+        route_component_for_node.get(destination_id)
+        for destination_id in destination_node_ids
+        if int(origin_pin_shares.get(zone_id, {}).get(destination_id, 0)) > 0
+        and route_component_for_node.get(destination_id) is not None
+        and route_component_for_node.get(destination_id) != origin_component
+    }
+    gap = closest_nodes_between_components(
+        origin_component, target_components, route_component_nodes, map_node_lookup
+    ) if counts["network"] and origin_component is not None and target_components else None
+    reason_parts = []
+    if counts["network"]:
+        reason_parts.append("No connected selected pin for the configured shares")
+    if counts["capacity"]:
+        reason_parts.append("Pin headcount limit reached")
+    if counts["allocation"]:
+        reason_parts.append("No share allocated or configured share already reached")
+    if counts["invalid"]:
+        reason_parts.append("Origin-to-pin percentages exceed 100%")
+    unrouted_origins.append({
+        "Origin area": origin["zone_name"],
+        "People not assigned": counts["network"] + counts["capacity"] + counts["allocation"] + counts["invalid"],
+        "Groups not assigned": counts["groups"],
+        "Reason": "; ".join(reason_parts),
+        "Origin component": origin_component if origin_component is not None else "Missing",
+        "Component nodes": route_component_size.get(origin_node_id, 0),
+        "Closest unconnected node gap (m)": round(gap["gap_m"], 1) if gap else None,
+        "Gap endpoint node IDs": f"{gap['source_node']} ↔ {gap['target_node']}" if gap else "",
+    })
+
+destination_capacity_summary = [
+    {
+        "Candidate pin": index + 1,
+        "Road node": node_id,
+        "Capacity entered": int(st.session_state.get(f"receiving_capacity_{node_id}", 0)),
+        "People assigned": int(st.session_state.get(f"receiving_capacity_{node_id}", 0)) - destination_capacity_remaining[node_id],
+        "Capacity remaining": destination_capacity_remaining[node_id],
+    }
+    for index, node_id in enumerate(destination_node_ids)
+]
 
 departure_counts = (
     synthetic_groups.assign(departure_minute=synthetic_groups["departure_min"].astype(int))
@@ -353,62 +773,32 @@ with map_col:
         show_hazard = control_cols[2].checkbox("Depth zones", value=True, key="show_hazard")
         show_boundaries = control_cols[3].checkbox("Boundaries", value=True, key="show_boundaries")
         show_synthetic_zones = control_cols[4].checkbox("Named origins", value=True, key="show_origins")
-        route_control_cols = st.columns([2.2, 2.3, 1.8, 3.7])
-        route_origin_zone_id = route_control_cols[0].selectbox(
-            "Route from",
-            options=zone_anchors["zone_id"].astype(str).tolist(),
-            format_func=lambda zone_id: str(zone_anchors.loc[zone_anchors["zone_id"].astype(str) == zone_id, "zone_name"].iloc[0]),
-            key="route_origin_zone_id",
-        )
+        route_control_cols = st.columns([2.2, 2.0, 1.6, 1.4, 3.5])
+        map_selection_mode = route_control_cols[0].selectbox("Map point type", ["Receiving pin", "Origin area"], key="map_point_type")
         pick_destination_on_map = route_control_cols[1].toggle(
             "Pick a road point",
             value=False,
             key="pick_destination_on_map",
-            help="Then click a teal mapped road node to use it as a candidate receiving location.",
+            help="Click a teal mapped road node. Add it as a receiving pin, or use it to define an aggregate origin area.",
         )
-        if route_control_cols[2].button("Clear pin", key="clear_candidate_destination"):
+        staged_destination = st.session_state.get("candidate_destination_node_id")
+        if route_control_cols[2].button("Add selected pin", key="add_candidate_destination", disabled=not staged_destination or map_selection_mode != "Receiving pin"):
+            pins = list(st.session_state.get("candidate_destination_node_ids", []))
+            if staged_destination not in pins:
+                pins.append(staged_destination)
+            st.session_state["candidate_destination_node_ids"] = pins
+            st.rerun()
+        if route_control_cols[3].button("Clear pins", key="clear_candidate_destinations"):
+            st.session_state["candidate_destination_node_ids"] = []
             st.session_state.pop("candidate_destination_node_id", None)
-        route_control_cols[3].caption("Pin = scenario candidate only; not a verified safe or available site.")
+            st.rerun()
+        route_control_cols[4].caption("Pins and origin anchors are scenario inputs—not verified safe or available sites.")
         selected_destination_node_id = st.session_state.get("candidate_destination_node_id")
-        route_origin = zone_anchors.loc[zone_anchors["zone_id"].astype(str) == str(route_origin_zone_id)].iloc[0]
-        route_result = None
-        route_error = None
-        if selected_destination_node_id:
-            origin_node_id = str(route_origin["road_node_id"])
-            if selected_destination_node_id not in routing_graph:
-                route_error = "The selected map node is not present in the current candidate road graph."
-            elif origin_node_id not in routing_graph:
-                route_error = "This origin's candidate entry point is missing from the road graph."
-            elif not nx.has_path(routing_graph, origin_node_id, selected_destination_node_id):
-                route_error = "No path connects these points after excluding mapped construction and explicit access restrictions."
-            else:
-                route_nodes = nx.shortest_path(
-                    routing_graph, origin_node_id, selected_destination_node_id, weight="free_flow_min"
-                )
-                route_length_m = sum(
-                    float(routing_graph[a][b].get("length_m", 0.0))
-                    for a, b in zip(route_nodes, route_nodes[1:])
-                )
-                route_result = {
-                    "nodes": route_nodes,
-                    "length_m": route_length_m,
-                    "time_min": route_length_m / (1.15 * float(speed_scale)) / 60.0,
-                    "origin_component_size": component_size_for_node.get(origin_node_id, 0),
-                    "destination_component_size": component_size_for_node.get(selected_destination_node_id, 0),
-                    "origin_coordinates": (float(route_origin["road_lon"]), float(route_origin["road_lat"])),
-                    "destination_coordinates": (
-                        float(map_node_lookup.loc[selected_destination_node_id, "lon"]),
-                        float(map_node_lookup.loc[selected_destination_node_id, "lat"]),
-                    ),
-                    "named_roads": list(dict.fromkeys(
-                        str(routing_graph[a][b].get("name", "")).strip()
-                        for a, b in zip(route_nodes, route_nodes[1:])
-                        if str(routing_graph[a][b].get("name", "")).strip()
-                        and str(routing_graph[a][b].get("name", "")).strip().lower() != "nan"
-                    )),
-                }
         if pick_destination_on_map:
-            st.info("Click a teal road-node dot to pin a candidate receiving location. Zoom in first for easier selection.")
+            if map_selection_mode == "Receiving pin":
+                st.info("Click a teal road-node dot, then choose **Add selected pin**. Repeat to add more than one candidate receiving point.")
+            else:
+                st.info("Click a teal road-node dot for the aggregate origin's representative access point. Then name it in the left sidebar under **Add a named origin area**.")
 
         try:
             fig = go.Figure()
@@ -436,17 +826,15 @@ with map_col:
                         add_boundary_layer(fig, map_data["regional_boundary"], "#0f172a", "Daet–Basud extent")
                     else:
                         add_boundary_layer(fig, map_data["gubat_boundary"], "#111827", "Gubat boundary")
-            if route_result:
-                route_node_coordinates = [
-                    map_node_lookup.loc[node_id]
-                    for node_id in route_result["nodes"]
-                ]
+            route_colors = ["#7c3aed", "#e11d48", "#0891b2", "#ca8a04", "#2563eb"]
+            for route_index, assignment in enumerate(route_assignments):
+                route_node_coordinates = [map_node_lookup.loc[node_id] for node_id in assignment["nodes"]]
                 fig.add_trace(go.Scattermapbox(
                     lon=[float(row["lon"]) for row in route_node_coordinates],
                     lat=[float(row["lat"]) for row in route_node_coordinates],
                     mode="lines",
-                    line={"color": "#7c3aed", "width": 5},
-                    name="Candidate shortest-time route · unverified",
+                    line={"color": route_colors[route_index % len(route_colors)], "width": 5},
+                    name=f"Candidate route · {assignment['origin']}",
                     hoverinfo="skip",
                 ))
             if pick_destination_on_map:
@@ -461,58 +849,72 @@ with map_col:
                 selectable_nodes["component_vertices"] = selectable_nodes["node_id"].map(
                     lambda node: component_size_for_node.get(node, 0)
                 )
+                selection_kind = "CANDIDATE_ORIGIN_NODE" if map_selection_mode == "Origin area" else "CANDIDATE_DESTINATION_NODE"
+                selection_label = "origin-area representative node" if map_selection_mode == "Origin area" else "candidate receiving pin"
                 fig.add_trace(go.Scattermapbox(
                     lon=selectable_nodes["lon"],
                     lat=selectable_nodes["lat"],
                     mode="markers",
                     marker={"size": 7, "color": "#0f766e", "opacity": 0.35},
-                    customdata=[["CANDIDATE_DESTINATION_NODE", row.node_id, row.component_vertices]
+                    customdata=[[selection_kind, row.node_id, row.component_vertices]
                                 for row in selectable_nodes.itertuples(index=False)],
-                    name="Click a road node to set candidate destination",
+                    name=f"Click a road node to set {selection_label}",
                     hovertemplate=("Candidate road node<br>ID: %{customdata[1]}<br>"
                                    "Raw component vertices: %{customdata[2]}<br>"
-                                   "Click to select as a scenario destination<extra></extra>"),
+                                   f"Click to select as a scenario {selection_label}<extra></extra>"),
                     selected={"marker": {"color": "#0f766e", "opacity": 1, "size": 12}},
                     unselected={"marker": {"opacity": 0.25}},
                 ))
-            if selected_destination_node_id in map_node_lookup.index:
-                selected_destination = map_node_lookup.loc[selected_destination_node_id]
+            if destination_node_ids:
+                committed_destination_rows = [map_node_lookup.loc[node_id] for node_id in destination_node_ids]
                 fig.add_trace(go.Scattermapbox(
-                    lon=[float(selected_destination["lon"])],
-                    lat=[float(selected_destination["lat"])],
+                    lon=[float(row["lon"]) for row in committed_destination_rows],
+                    lat=[float(row["lat"]) for row in committed_destination_rows],
                     mode="markers+text",
-                    text=["Candidate destination pin"],
+                    text=[f"Candidate {index + 1}" for index in range(len(committed_destination_rows))],
                     textposition="top center",
                     marker={"size": 16, "color": "#dc2626", "symbol": "circle"},
-                    name="Selected candidate destination pin",
-                    customdata=[[selected_destination_node_id]],
+                    name="Selected candidate destination pins",
+                    customdata=[[node_id] for node_id in destination_node_ids],
                     hovertemplate="Candidate map point<br>Road node: %{customdata[0]}<br>Not a verified safe site<extra></extra>",
+                ))
+            pending_origin_node_id = st.session_state.get("pending_origin_node_id")
+            if pending_origin_node_id in map_node_lookup.index:
+                pending_origin = map_node_lookup.loc[pending_origin_node_id]
+                fig.add_trace(go.Scattermapbox(
+                    lon=[float(pending_origin["lon"])], lat=[float(pending_origin["lat"])],
+                    mode="markers+text", text=["New origin anchor"], textposition="bottom center",
+                    marker={"size": 15, "color": "#9333ea", "symbol": "circle"},
+                    name="User-selected origin road node",
+                    customdata=[[pending_origin_node_id]],
+                    hovertemplate="User-selected candidate origin node<br>%{customdata[0]}<br>Not a mapped neighborhood boundary<extra></extra>",
                 ))
             if show_synthetic_zones:
                 if map_extent == "Daet–Basud" and show_boundaries:
                     add_boundary_layer(fig, map_data["gubat_boundary"], "#111827", "Gubat boundary")
-                max_zone_people = max(int(zone_summary["people"].max()), 1)
+                active_zone_summary = zone_summary.loc[zone_summary["people"] > 0].copy()
+                max_zone_people = max(int(active_zone_summary["people"].max()), 1)
                 fig.add_trace(go.Scattermapbox(
-                    lon=[coordinate for pair in zip(zone_summary["lon"], zone_summary["road_lon"]) for coordinate in (pair[0], pair[1], None)],
-                    lat=[coordinate for pair in zip(zone_summary["lat"], zone_summary["road_lat"]) for coordinate in (pair[0], pair[1], None)],
+                    lon=[coordinate for pair in zip(active_zone_summary["lon"], active_zone_summary["road_lon"]) for coordinate in (pair[0], pair[1], None)],
+                    lat=[coordinate for pair in zip(active_zone_summary["lat"], active_zone_summary["road_lat"]) for coordinate in (pair[0], pair[1], None)],
                     mode="lines", line={"color": "#2563eb", "width": 1},
                     name="Anchor offset · not a route", hoverinfo="skip",
                 ))
                 fig.add_trace(go.Scattermapbox(
-                    lon=zone_summary["lon"], lat=zone_summary["lat"], mode="markers+text",
-                    text=zone_summary["map_label"], textposition="top center",
-                    marker={"size": [12 + 18 * int(value) / max_zone_people for value in zone_summary["people"]], "color": "#f59e0b", "opacity": 0.9, "symbol": "circle"},
+                    lon=active_zone_summary["lon"], lat=active_zone_summary["lat"], mode="markers+text",
+                    text=active_zone_summary["map_label"], textposition="top center",
+                    marker={"size": [12 + 18 * int(value) / max_zone_people for value in active_zone_summary["people"]], "color": "#f59e0b", "opacity": 0.9, "symbol": "circle"},
                     name="Named-area origin anchors",
-                    customdata=zone_summary[["zone_id", "zone_name", "people", "groups", "simulated_share_pct"]].to_numpy(),
+                    customdata=active_zone_summary[["zone_id", "zone_name", "people", "groups", "simulated_share_pct"]].to_numpy(),
                     hovertemplate=("%{customdata[1]}<br>Origin ID: %{customdata[0]}<br>"
                                    "Synthetic people: %{customdata[2]}<br>Synthetic groups: %{customdata[3]}<br>"
-                                   "Randomized share: %{customdata[4]}%<br>Named-place anchor; no household locations<extra></extra>"),
+                                   "Scenario share: %{customdata[4]}%<br>Named-place anchor; no household locations<extra></extra>"),
                 ))
                 fig.add_trace(go.Scattermapbox(
-                    lon=zone_summary["road_lon"], lat=zone_summary["road_lat"], mode="markers",
-                    marker={"size": [10 + 14 * int(value) / max_zone_people for value in zone_summary["people"]], "color": "#2563eb", "symbol": "circle", "opacity": 0.95},
+                    lon=active_zone_summary["road_lon"], lat=active_zone_summary["road_lat"], mode="markers",
+                    marker={"size": [10 + 14 * int(value) / max_zone_people for value in active_zone_summary["people"]], "color": "#2563eb", "symbol": "circle", "opacity": 0.95},
                     name="Scenario groups · candidate road nodes",
-                    customdata=zone_summary[["zone_name", "candidate_road_name", "road_node_id", "people", "groups", "anchor_to_road_m", "road_access_status"]].to_numpy(),
+                    customdata=active_zone_summary[["zone_name", "candidate_road_name", "road_node_id", "people", "groups", "anchor_to_road_m", "road_access_status"]].to_numpy(),
                     hovertemplate=("%{customdata[0]}<br>Mapped road/path: %{customdata[1]}<br>Candidate graph node: %{customdata[2]}<br>"
                                    "Synthetic people: %{customdata[3]}<br>Synthetic groups: %{customdata[4]}<br>"
                                    "Anchor offset: %{customdata[5]} m<br>%{customdata[6]}<extra></extra>"),
@@ -534,7 +936,7 @@ with map_col:
                 use_container_width=True,
                 config={"scrollZoom": True},
                 key="scenario_geographic_map",
-                on_select=remember_map_destination,
+                on_select=remember_map_point_selection,
                 selection_mode="points",
             )
             legend_items = []
@@ -547,12 +949,15 @@ with map_col:
                 legend_items.extend(f'<span class="map-legend-item"><i class="map-legend-line" style="border-color:{color}"></i>Road · {label}</span>' for color, label in road_legend)
             if show_boundaries:
                 legend_items.append('<span class="map-legend-item"><i class="map-legend-line" style="border-color:#111827;border-top-width:3px"></i>Boundary</span>')
-            if route_result:
-                legend_items.append('<span class="map-legend-item"><i class="map-legend-line" style="border-color:#7c3aed;border-top-width:4px"></i>Shortest-time candidate route · unverified</span>')
+            if route_assignments:
+                legend_items.append('<span class="map-legend-item"><i class="map-legend-line" style="border-color:#7c3aed;border-top-width:4px"></i>Candidate origin-to-pin routes · unverified</span>')
             if pick_destination_on_map:
-                legend_items.append('<span class="map-legend-item"><i class="map-legend-dot" style="background:#0f766e"></i>Selectable candidate road node</span>')
-            if selected_destination_node_id:
-                legend_items.append('<span class="map-legend-item"><i class="map-legend-dot" style="background:#dc2626"></i>Selected candidate destination pin</span>')
+                selectable_label = "Selectable origin road node" if map_selection_mode == "Origin area" else "Selectable receiving-point node"
+                legend_items.append(f'<span class="map-legend-item"><i class="map-legend-dot" style="background:#0f766e"></i>{selectable_label}</span>')
+            if destination_node_ids:
+                legend_items.append('<span class="map-legend-item"><i class="map-legend-dot" style="background:#dc2626"></i>Candidate receiving-point pins</span>')
+            if st.session_state.get("pending_origin_node_id"):
+                legend_items.append('<span class="map-legend-item"><i class="map-legend-dot" style="background:#9333ea"></i>Staged origin anchor</span>')
             if show_synthetic_zones:
                 legend_items.extend([
                     '<span class="map-legend-item"><i class="map-legend-line" style="border-color:#2563eb"></i>Anchor offset · not a route</span>',
@@ -579,10 +984,8 @@ with details_col:
             detail_tabs = st.tabs(["Overview", "Origin groups", "Pin route", "Route demo", "Sources & limits", "Road coverage", "Printable map"])
 
             with detail_tabs[0]:
-                st.markdown("### Project status")
-                st.metric("Roadmap progress", "80%")
-                st.write("Named-area groups now display at candidate nodes on the mapped OSM graph.")
-                st.warning("The map pin route is an unreviewed screening preview. The separate R1–R12 demo still drives the route tables below.")
+                st.markdown("### Scenario interpretation")
+                st.warning("The map routes are an unreviewed screening preview. R1–R12 still drive the separate schematic demo tables. User-created origin anchors are session-only road-node representatives, not mapped neighborhood boundaries.")
                 st.markdown("**Map key**")
                 st.write("🟠 Named residential-area reference point")
                 st.write("🔵 Candidate OSM graph entry node; size reflects synthetic group totals")
@@ -592,19 +995,19 @@ with details_col:
             with detail_tabs[1]:
                 st.markdown("### Synthetic origin groups")
                 st.warning(
-                    f"Scenario assumption: uses the workbook's aggregate Gubat total of {gubat_population_total:,}. "
-                    "Its definitions and permission, plus the randomized area shares, need confirmation. No household locations are generated."
+                    f"Scenario assumption: selected origin amounts total {scenario_people_total:,} people under the user-set run cap of {int(scenario_people_limit):,}. "
+                    f"The only current source aggregate is {gubat_population_total:,} for Gubat; any wider-area counts or finer-area splits are user assumptions until approved totals are supplied. No household locations are generated."
                 )
                 st.metric("Groups generated", f"{len(synthetic_groups):,}")
                 st.metric("People in this run", f"{int(synthetic_groups['group_size'].sum()):,}")
-                st.metric("Candidate areas", f"{len(zone_summary):,}")
+                st.metric("Origin areas with evacuees", f"{int((zone_summary['people'] > 0).sum()):,}")
                 st.metric("Repeatable seed", f"{int(random_seed)}")
                 st.caption(
                     f"Departure draws: 0–{departure_window_min} minutes; typical groups 5–10; small-party assumption 2–3 "
-                    f"({small_party_share_pct}% of draws); zone balance control {zone_balance}/10."
+                    f"({small_party_share_pct}% of draws). Group sizes and departure times are synthetic assumptions."
                 )
                 st.bar_chart(departure_counts.set_index("departure_minute"), y="people_departing", height=180)
-                st.markdown("**Randomized totals by area**")
+                st.markdown("**Scenario evacuees by selected origin area**")
                 st.dataframe(zone_summary[["zone_name", "groups", "people", "simulated_share_pct"]], use_container_width=True, hide_index=True)
                 st.markdown("**Candidate graph entry points**")
                 st.dataframe(
@@ -616,35 +1019,68 @@ with details_col:
                     st.caption("No household locations or individual map points are included.")
                 st.download_button(
                     "Download group run (CSV)", data=synthetic_groups.to_csv(index=False).encode("utf-8"),
-                    file_name=f"synthetic_gubat_groups_seed_{int(random_seed)}.csv", mime="text/csv",
+                    file_name=f"synthetic_scenario_groups_seed_{int(random_seed)}.csv", mime="text/csv",
                 )
 
             with detail_tabs[2]:
-                st.markdown("### Route to a map-selected candidate")
-                st.caption("Pick a teal road-node point on the map. The app uses the selected origin's candidate graph node as the start and the clicked graph node as the receiving-point pin.")
-                if not selected_destination_node_id:
-                    st.info("No candidate destination is pinned yet. Turn on **Pick a road point on the map**, then click a teal node. Zoom in to choose the intended street segment.")
-                elif route_error:
-                    destination_component_size = component_size_for_node.get(str(selected_destination_node_id), 0)
-                    origin_component_size = component_size_for_node.get(str(route_origin["road_node_id"]), 0)
-                    st.error(route_error)
-                    st.write(f"Origin raw component size: {origin_component_size:,} graph nodes")
-                    st.write(f"Selected point raw component size: {destination_component_size:,} graph nodes")
-                    st.caption("Disconnected points are not joined by straight-line connectors. Review missing links and pedestrian access before routing.")
-                elif route_result:
-                    st.success("A graph path exists for this selected origin and candidate map point.")
-                    metric_cols = st.columns(3)
-                    metric_cols[0].metric("Estimated shortest walking time", f"{route_result['time_min']:.1f} min")
-                    metric_cols[1].metric("Candidate path length", f"{route_result['length_m'] / 1000:.2f} km")
-                    metric_cols[2].metric("Graph segments", f"{len(route_result['nodes']) - 1:,}")
-                    st.write(f"Origin: **{route_origin['zone_name']}**")
-                    st.write(f"Candidate destination road node: `{selected_destination_node_id}`")
-                    st.write(f"Selected point coordinates: {route_result['destination_coordinates'][1]:.6f}, {route_result['destination_coordinates'][0]:.6f}")
-                    st.write("OSM road names on path: " + ("; ".join(route_result["named_roads"]) if route_result["named_roads"] else "No names recorded; segment IDs are not shown as street names."))
-                    st.caption("The pin is placed directly on a graph node, so its graph snap offset is 0 m. Selecting an arbitrary off-road coordinate is not part of this first version.")
-                    st.warning("This is shortest estimated free-flow time on an unreviewed OSM graph, not a congestion-aware evacuation assignment or a safe-route finding. The static inundation polygons contain no tsunami arrival times, so the app cannot model whether this route remains passable as water advances.")
+                st.markdown("### Origins routed to selected candidate pins")
+                st.caption("Set a receiving limit for each pin below. Origin-to-pin shares are set in the left scenario sidebar. Whole groups are routed in departure order toward those shares, subject to graph connectivity and remaining pin capacity.")
+                if not destination_node_ids:
+                    st.info("No candidate receiving pins yet. Turn on **Pick a road point**, select a teal node, then click **Add selected pin**. Repeat for additional destinations.")
                 else:
-                    st.info("Select a candidate road node to calculate its screening path.")
+                    st.write(f"Selected candidate receiving points: **{len(destination_node_ids)}**")
+                    st.markdown("**Maximum evacuees each candidate pin can receive**")
+                    st.caption("Enter each location's assumed scenario capacity. These limits are user assumptions; none of the pins is a confirmed shelter or approved safe area.")
+                    for pin_index, node_id in enumerate(destination_node_ids, start=1):
+                        capacity_key = f"receiving_capacity_{node_id}"
+                        if capacity_key not in st.session_state:
+                            st.session_state[capacity_key] = 0
+                        if int(st.session_state[capacity_key]) > int(scenario_people_limit):
+                            st.session_state[capacity_key] = int(scenario_people_limit)
+                        pin_location = map_node_lookup.loc[node_id]
+                        st.caption(f"Pin {pin_index} · road node `{node_id}` · {float(pin_location['lat']):.5f}, {float(pin_location['lon']):.5f}")
+                        st.number_input(
+                            f"Candidate pin {pin_index} · maximum evacuees",
+                            min_value=0, max_value=int(scenario_people_limit), step=50,
+                            key=capacity_key,
+                            help="Scenario capacity only. Confirm the site's permission, usable space, access, and capacity locally before treating it as a real receiving area.",
+                        )
+                    st.markdown("**Capacity used in this scenario**")
+                    st.dataframe(pd.DataFrame(destination_capacity_summary), use_container_width=True, hide_index=True)
+                    if route_assignments:
+                        assigned_people = sum(item["people"] for item in route_assignments)
+                        assigned_groups = sum(item["groups"] for item in route_assignments)
+                        st.success(f"Assigned {assigned_people:,} people in {assigned_groups:,} groups across the candidate paths.")
+                        route_table = pd.DataFrame([{
+                            "Origin area": item["origin"],
+                            "People assigned": item["people"],
+                            "Groups": item["groups"],
+                            "Assigned candidate pin": destination_node_ids.index(item["destination_node_id"]) + 1,
+                            "Configured origin share (%)": int(origin_pin_shares.get(item["zone_id"], {}).get(item["destination_node_id"], 0)),
+                            "Actual origin share (%)": round(item["people"] / max(int(zone_summary.loc[zone_summary["zone_id"].astype(str) == item["zone_id"], "people"].iloc[0]), 1) * 100, 1),
+                            "Estimated walk time (min)": round(item["time_min"], 1),
+                            "Path length (km)": round(item["length_m"] / 1000, 2),
+                            "OSM road names": "; ".join(item["named_roads"]) or "No names recorded",
+                        } for item in route_assignments])
+                        st.dataframe(route_table, use_container_width=True, hide_index=True)
+                        hazard_rows = [
+                            {"Origin area": item["origin"], "Candidate pin": destination_node_ids.index(item["destination_node_id"]) + 1,
+                             "Static depth class": depth_class, "Sampled path length in polygon (m)": round(distance_m, 1)}
+                            for item in route_assignments
+                            for depth_class, distance_m in sorted(item["hazard_overlap_m_by_class"].items())
+                        ]
+                        st.markdown("**Approximate overlap with static inundation classes**")
+                        if hazard_rows:
+                            st.dataframe(pd.DataFrame(hazard_rows), use_container_width=True, hide_index=True)
+                        else:
+                            st.info("No sampled overlap with the available static inundation polygons was found on these paths.")
+                    if unrouted_origins:
+                        st.warning("Some synthetic groups remain unassigned because no selected pin is connected or the connected pins have reached their entered capacities.")
+                        st.dataframe(pd.DataFrame(unrouted_origins), use_container_width=True, hide_index=True)
+                        st.caption("Component IDs, node counts, and closest node gaps describe the exported graph only. They are review leads and do not identify a safe shortcut or justify drawing a connector.")
+                    if selected_destination_node_id and selected_destination_node_id not in destination_node_ids:
+                        st.caption("A road node is staged on the map but has not been added to the receiving-points list yet.")
+                    st.caption("Entered destination limits are total scenario headcounts, not throughput rates. Path/hazard overlap uses approximate 5 m map samples and does not estimate tsunami arrival, changing road depth, congestion, road capacity, or route safety.")
 
             with detail_tabs[3]:
                 st.markdown("### Schematic route demo")
