@@ -1,0 +1,2 @@
+zone_id,zone_name,aggregation_level,population_total,households_total,average_household_size,longitude,latitude,spatial_method,source,status,notes
+GUBAT,Gubat,barangay,6502,1680,3.8702380952381,,,Representative point from Gubat boundary pending,2024 CBMS Total Population.xlsx,AGGREGATE_ONLY_NEEDS_SPATIAL_LINK,"Workbook reports barangay-level aggregate values; no individual household locations or person counts stored. Confirm reference period and definitions with the data provider. Gubat-specific elderly, child, and PWD totals were not found in this workbook."

@@ -25,3 +25,15 @@ Therefore:
 The print overview is `output/daet_basud_road_review.png` (also available as PDF). See `data/daet_basud_review_instructions.md` for loading the component index in QGIS and recording a human review. The review-status fields currently remain `NOT REVIEWED`.
 
 No edge capacities, lane assumptions, walking speeds, shelters, or population estimates were inferred from this connectivity count. The app remains on the schematic R1–R12 graph until the road graph and scenario inputs are reviewed and integrated.
+
+## Gubat origin candidate proximity screen
+
+`audit_origin_access.py` creates `origin_access_review.csv` from the current named-area anchors, selected candidate graph nodes, OSM road geometries, and preliminary vertex graph. It keeps nearest-road-line distance separate from selected-node distance and records the OSM way tags and candidate node's raw graph component. The current measurements are:
+
+| Origin anchor | Nearest mapped road geometry | Recorded graph node | Raw component | Other included origins in component |
+|---|---:|---:|---|---|
+| Roseville Subdivision | 163.0 m | 163.0 m | C046 (21 vertices) | None |
+| Cleofe Ecology Village | 13.4 m | 38.3 m | C005 (622 vertices) | Mandulongan (Purok Tsiko) |
+| Mandulongan (Purok Tsiko) | 24.6 m | 25.1 m | C005 (622 vertices) | Cleofe Ecology Village |
+
+The measurements are a triage screen only. The Roseville gap is a priority for map inspection; the smaller distances at the other anchors still do not confirm a gate, walkable connector, road crossing, or safe access. All candidate access records remain `REVIEW_REQUIRED`. Do not add connectors or merge graph components from proximity alone. The Streamlit Road coverage panel displays the report and provides its CSV download for QGIS/local review.
