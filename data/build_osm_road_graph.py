@@ -1,4 +1,4 @@
-"""Convert the Daet–Basud OSM GeoPackage into a vertex-based graph CSV.
+"""Convert the Daet–Basud OSM road-context GeoPackage into a graph CSV.
 
 This is a geometry preparation step, not a route-safety validator. It preserves
 all mapped ways and does not infer connections at crossings or grade separation.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 DATA_DIR = Path(__file__).resolve().parent
-SOURCE = DATA_DIR / "daet_basud_roads.gpkg"
+SOURCE = DATA_DIR / "daet_basud_roads_context_100m.gpkg"
 NODES_OUT = DATA_DIR / "daet_basud_network_nodes.csv"
 EDGES_OUT = DATA_DIR / "daet_basud_network_edges.csv"
 
@@ -73,6 +73,11 @@ def _node_id(lon: float, lat: float) -> str:
     return f"N{lon:.8f}_{lat:.8f}"
 
 
+def _tag(feature: sqlite3.Row, key: str) -> str:
+    """Read an optional OSM tag without requiring every source extract to have it."""
+    return str(feature[key] or "") if key in feature.keys() else ""
+
+
 def _distance_m(a: tuple[float, float], b: tuple[float, float]) -> float:
     lon1, lat1 = map(math.radians, a)
     lon2, lat2 = map(math.radians, b)
@@ -112,6 +117,14 @@ def main() -> None:
                     "foot": feature["foot"] or "",
                     "access": feature["access"] or "",
                     "vehicle_oneway": feature["oneway"] or "",
+                    # Keep bridge and pedestrian-access tags available for review.
+                    # Lane counts are road metadata, not pedestrian capacity.
+                    "bridge": _tag(feature, "bridge"),
+                    "bridge_name": _tag(feature, "bridge:name"),
+                    "layer": _tag(feature, "layer"),
+                    "lanes": _tag(feature, "lanes"),
+                    "sidewalk": _tag(feature, "sidewalk"),
+                    "construction": _tag(feature, "construction"),
                     "segment_index": segment_index,
                     "length_m": round(distance, 2),
                 }
@@ -129,7 +142,8 @@ def main() -> None:
     node_fields = ("node_id", "lon", "lat")
     edge_fields = (
         "edge_id", "from_node", "to_node", "osm_fid", "osm_id", "osm_type",
-        "name", "highway", "foot", "access", "vehicle_oneway", "segment_index", "length_m",
+        "name", "highway", "foot", "access", "vehicle_oneway", "bridge", "bridge_name",
+        "layer", "lanes", "sidewalk", "construction", "segment_index", "length_m",
     )
     for path, fields, records in ((NODES_OUT, node_fields, nodes.values()), (EDGES_OUT, edge_fields, edges)):
         with path.open("w", encoding="utf-8", newline="") as stream:
@@ -137,10 +151,12 @@ def main() -> None:
             writer.writeheader()
             writer.writerows(records)
     named = sum(bool(edge["name"]) for edge in edges)
+    bridge_tagged = sum(bool(edge["bridge"] or edge["bridge_name"]) for edge in edges)
     print(f"Source features: {len(rows)}")
     print(f"Graph vertices: {len(nodes)}")
     print(f"Directed walking segments: {len(edges)}")
     print(f"Segments with OSM name/ref: {named} ({named / max(len(edges), 1):.1%})")
+    print(f"Segments with bridge tags: {bridge_tagged}")
     print(f"Zero-length consecutive segments skipped: {skipped_short}")
     print(f"Wrote {NODES_OUT.name} and {EDGES_OUT.name}")
 

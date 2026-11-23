@@ -65,6 +65,8 @@ project_dir = Path(__file__).parent
 road_review_png = Path(__file__).parent / "output" / "daet_basud_road_review.png"
 road_review_pdf = Path(__file__).parent / "output" / "daet_basud_road_review.pdf"
 origin_access_review_csv = Path(__file__).parent / "data" / "origin_access_review.csv"
+component_gap_review_csv = Path(__file__).parent / "data" / "daet_basud_component_gap_review.csv"
+component_gap_review_geojson = Path(__file__).parent / "data" / "daet_basud_component_gap_review.geojson"
 
 try:
     inputs = load_inputs(str(Path(__file__).parent / "data"))
@@ -92,12 +94,45 @@ with st.sidebar:
     st.subheader("Synthetic group scenario")
     custom_origins = list(st.session_state.get("scenario_custom_origins", []))
     pending_origin_node_id = st.session_state.get("pending_origin_node_id")
+    roadside_origin_exists = any(
+        str(item["zone_name"]).strip().casefold() == "roadside residents"
+        for item in custom_origins
+    ) or origin_candidates["zone_name"].astype(str).str.strip().str.casefold().eq("roadside residents").any()
     if pending_origin_node_id:
         st.info(f"Selected candidate origin road node: {pending_origin_node_id}")
     with st.expander("Add a named origin area", expanded=bool(pending_origin_node_id)):
         st.caption("Choose a representative road node on the map first. This creates an aggregate scenario origin, not a household point or a mapped neighborhood boundary.")
         if custom_origins:
             st.caption("User-created origin labels and road-node anchors last for this app session; add them again after a server restart.")
+        if not roadside_origin_exists:
+            st.caption("For Roadside residents, first choose **Map point type → Origin area**, enable **Pick a road point**, and click the teal road node nearest the cluster you want to represent.")
+            if st.button(
+                "Add Roadside residents at selected node",
+                key="add_roadside_residents_origin",
+                disabled=not pending_origin_node_id,
+                help="First set Map point type to Origin area and select a teal road node where this aggregate should be represented.",
+            ) and pending_origin_node_id:
+                origin_id = "MAP_ROADSIDE_RESIDENTS"
+                used_ids = {str(item["zone_id"]) for item in custom_origins}
+                suffix = 2
+                while origin_id in used_ids or origin_id in set(origin_candidates["zone_id"].astype(str)):
+                    origin_id = f"MAP_ROADSIDE_RESIDENTS_{suffix}"
+                    suffix += 1
+                custom_origins.append({
+                    "zone_id": origin_id,
+                    "zone_name": "Roadside residents",
+                    "map_label": "Roadside residents",
+                    "road_node_id": str(pending_origin_node_id),
+                })
+                st.session_state["scenario_custom_origins"] = custom_origins
+                st.session_state["selected_origin_ids_widget"] = [
+                    *st.session_state.get("selected_origin_ids_widget", origin_candidates["zone_id"].astype(str).tolist()),
+                    origin_id,
+                ]
+                st.session_state.pop("pending_origin_node_id", None)
+                st.rerun()
+        else:
+            st.caption("Roadside residents has already been added for this app session.")
         custom_origin_name = st.text_input("Origin area name", key="custom_origin_name_input", placeholder="e.g., Borabod north-side homes")
         can_add_origin = bool(pending_origin_node_id and custom_origin_name.strip())
         if st.button("Add this origin area", key="add_custom_origin", disabled=not can_add_origin):
@@ -193,13 +228,14 @@ result = run_simulation(
 )
 
 @st.cache_data
-def load_interactive_map_data(base_dir: str):
+def load_interactive_map_data(base_dir: str, graph_revision: tuple[int, int]):
     base = Path(base_dir)
     return {
         "hazard": read_gpkg_features(base / "data" / "gubat_tsunami_clip_fixed.gpkg"),
         "gubat_boundary": read_gpkg_features(base / "data" / "gubat_boundary_traced_fixed.gpkg"),
         "daet_boundary": read_gpkg_features(base / "data" / "daet_boundary.gpkg"),
         "regional_boundary": read_gpkg_features(base / "data" / "daet_basud_boundary.gpkg"),
+        "buildings": read_gpkg_features(base / "data" / "raw" / "osm_daet_buildings.gpkg"),
         "road_nodes": pd.read_csv(base / "data" / "daet_basud_network_nodes.csv"),
         "road_edges": pd.read_csv(base / "data" / "daet_basud_network_edges.csv"),
     }
@@ -412,6 +448,116 @@ def add_road_layer(fig, road_edges, road_nodes, bounds):
             ))
 
 
+def geometry_coordinate_pairs(value):
+    """Yield coordinate pairs from a GeoJSON geometry coordinate tree."""
+    if isinstance(value, (list, tuple)):
+        if len(value) >= 2 and isinstance(value[0], (int, float)) and isinstance(value[1], (int, float)):
+            yield float(value[0]), float(value[1])
+        else:
+            for child in value:
+                yield from geometry_coordinate_pairs(child)
+
+
+def clear_map_search_selection():
+    st.session_state["map_search_selected"] = None
+
+
+def apply_map_search_selection():
+    selected_label = st.session_state.get("map_search_selected")
+    selected = next((item for item in map_search_catalog if item["label"] == selected_label), None)
+    if selected:
+        lon, lat = selected["lon"], selected["lat"]
+        if 122.957 <= lon <= 122.991 and 14.104 <= lat <= 14.133:
+            st.session_state["map_extent"] = "Gubat"
+        elif 122.887 <= lon <= 123.005 and 14.065 <= lat <= 14.155:
+            st.session_state["map_extent"] = "Daet"
+        else:
+            st.session_state["map_extent"] = "Daet–Basud"
+
+
+@st.cache_data
+def load_map_search_catalog(base_dir: str, graph_revision: tuple[int, int]):
+    """Build local name search entries from the packaged OSM project layers."""
+    base = Path(base_dir)
+    nodes = pd.read_csv(base / "data" / "daet_basud_network_nodes.csv").assign(
+        node_id=lambda frame: frame["node_id"].astype(str)
+    ).set_index("node_id")
+    edges = pd.read_csv(base / "data" / "daet_basud_network_edges.csv")
+    forward_edges = edges.loc[edges["edge_id"].astype(str).str.endswith("_F")]
+    entries = []
+
+    for _, road in forward_edges.iterrows():
+        name = str(road.get("name", "")).strip()
+        if not name or name.lower() == "nan":
+            name = str(road.get("ref", "")).strip()
+        if name and name.lower() != "nan":
+            entries.append((name, str(road.get("highway", "road")), str(road["from_node"]), str(road["to_node"])))
+
+    road_search_rows = {}
+    for name, road_type, from_node, to_node in entries:
+        key = (name, road_type)
+        road_search_rows.setdefault(key, set()).update((from_node, to_node))
+    catalog = []
+    for (name, road_type), node_ids in road_search_rows.items():
+        valid_nodes = [node_id for node_id in node_ids if node_id in nodes.index]
+        if not valid_nodes:
+            continue
+        subset = nodes.loc[valid_nodes]
+        catalog.append({
+            "label": f"Road · {name} ({road_type})",
+            "search_text": f"{name} {road_type} road street",
+            "kind": "Road",
+            "name": name,
+            "lat": float(subset["lat"].mean()),
+            "lon": float(subset["lon"].mean()),
+        })
+
+    for feature in read_gpkg_features(base / "data" / "raw" / "osm_daet_buildings.gpkg"):
+        properties = feature["properties"]
+        name = next((str(properties.get(field, "")).strip() for field in
+                     ("name", "name:en", "official_name", "short_name", "addr:housename", "brand")
+                     if properties.get(field) and str(properties.get(field)).strip().lower() != "nan"), "")
+        if not name:
+            continue
+        coordinates = list(geometry_coordinate_pairs(feature["geometry"].get("coordinates", [])))
+        if not coordinates:
+            continue
+        min_lon = min(point[0] for point in coordinates)
+        max_lon = max(point[0] for point in coordinates)
+        min_lat = min(point[1] for point in coordinates)
+        max_lat = max(point[1] for point in coordinates)
+        category = next((str(properties.get(field, "")).strip() for field in
+                         ("amenity", "shop", "office", "building", "tourism")
+                         if properties.get(field) and str(properties.get(field)).strip().lower() != "nan"), "building")
+        catalog.append({
+            "label": f"Building/place · {name} ({category})",
+            "search_text": f"{name} {category} building place",
+            "kind": "Building/place",
+            "name": name,
+            "lat": (min_lat + max_lat) / 2,
+            "lon": (min_lon + max_lon) / 2,
+        })
+
+    candidates = pd.read_csv(base / "data" / "origin_zone_candidates.csv")
+    for row in candidates.itertuples(index=False):
+        catalog.append({
+            "label": f"Named area · {row.zone_name}",
+            "search_text": f"{row.zone_name} {row.map_label} {row.locality_type}",
+            "kind": "Named area",
+            "name": str(row.zone_name),
+            "lat": float(row.latitude),
+            "lon": float(row.longitude),
+        })
+    catalog.sort(key=lambda item: (item["kind"], item["name"].casefold(), item["label"]))
+    label_counts = {}
+    for item in catalog:
+        base_label = item["label"]
+        label_counts[base_label] = label_counts.get(base_label, 0) + 1
+        if label_counts[base_label] > 1:
+            item["label"] = f"{base_label} · result {label_counts[base_label]}"
+    return catalog
+
+
 def remember_map_point_selection():
     """Save a clicked graph node as a staged origin anchor or receiving pin."""
     event = st.session_state.get("scenario_geographic_map", {})
@@ -429,7 +575,13 @@ def remember_map_point_selection():
 
 
 try:
-    map_data = load_interactive_map_data(str(project_dir))
+    graph_paths = (
+        Path(project_dir) / "data" / "daet_basud_network_nodes.csv",
+        Path(project_dir) / "data" / "daet_basud_network_edges.csv",
+    )
+    graph_revision = tuple(path.stat().st_mtime_ns for path in graph_paths)
+    map_data = load_interactive_map_data(str(project_dir), graph_revision)
+    map_search_catalog = load_map_search_catalog(str(project_dir), graph_revision)
     zone_anchors = scenario_generation.load_named_zone_anchors(
         Path(project_dir) / "data" / "origin_zone_candidates.csv",
         map_data["gubat_boundary"],
@@ -752,6 +904,64 @@ destination_capacity_summary = [
     for index, node_id in enumerate(destination_node_ids)
 ]
 
+# Make origin-to-pin reachability visible before users interpret allocation
+# totals. A high pin share can remain unassigned when its road node is in a
+# different filtered graph component from the origin's representative node.
+origin_pin_connectivity_rows = []
+component_gap_cache = {}
+for origin in zone_summary.loc[zone_summary["people"] > 0].to_dict("records"):
+    zone_id = str(origin["zone_id"])
+    origin_node_id = str(origin["road_node_id"])
+    origin_component = route_component_for_node.get(origin_node_id)
+    options_by_destination = {
+        item[2]: item for item in destination_path_options.get(zone_id, [])
+    }
+    for pin_index, destination_node_id in enumerate(destination_node_ids, start=1):
+        destination_component = route_component_for_node.get(destination_node_id)
+        configured_share = int(origin_pin_shares.get(zone_id, {}).get(destination_node_id, 0))
+        path = options_by_destination.get(destination_node_id)
+        row = {
+            "Origin area": str(origin["zone_name"]),
+            "Candidate pin": pin_index,
+            "Planned share (%)": configured_share,
+            "Connectivity": "Connected in filtered graph" if path else "Not connected in filtered graph",
+            "Origin component": origin_component if origin_component is not None else "Missing",
+            "Pin component": destination_component if destination_component is not None else "Missing",
+            "Shortest path (km)": round(path[1] / 1000, 2) if path else None,
+            "Free-flow path (min)": round(path[0], 1) if path else None,
+            "Closest graph-node gap (m)": None,
+            "Closest origin-side node ID": None,
+            "Closest origin-side node": None,
+            "Origin-side mapped road(s)": None,
+            "Closest pin-side node ID": None,
+            "Closest pin-side node": None,
+            "Pin-side mapped road(s)": None,
+        }
+        if origin_component is not None and destination_component is not None and origin_component != destination_component:
+            component_pair = (origin_component, destination_component)
+            if component_pair not in component_gap_cache:
+                component_gap_cache[component_pair] = closest_nodes_between_components(
+                    origin_component, {destination_component}, route_component_nodes, map_node_lookup
+                )
+            gap = component_gap_cache[component_pair]
+            row["Closest graph-node gap (m)"] = round(gap["gap_m"], 1) if gap else None
+            if gap:
+                origin_gap_node = str(gap["source_node"])
+                pin_gap_node = str(gap["target_node"])
+                origin_gap_location = map_node_lookup.loc[origin_gap_node]
+                pin_gap_location = map_node_lookup.loc[pin_gap_node]
+                row["Closest origin-side node ID"] = origin_gap_node
+                row["Closest origin-side node"] = (
+                    f"{float(origin_gap_location['lat']):.5f}, {float(origin_gap_location['lon']):.5f}"
+                )
+                row["Origin-side mapped road(s)"] = "; ".join(sorted(node_road_names.get(origin_gap_node, set()))) or "Unnamed mapped road/path"
+                row["Closest pin-side node ID"] = pin_gap_node
+                row["Closest pin-side node"] = (
+                    f"{float(pin_gap_location['lat']):.5f}, {float(pin_gap_location['lon']):.5f}"
+                )
+                row["Pin-side mapped road(s)"] = "; ".join(sorted(node_road_names.get(pin_gap_node, set()))) or "Unnamed mapped road/path"
+        origin_pin_connectivity_rows.append(row)
+
 departure_counts = (
     synthetic_groups.assign(departure_minute=synthetic_groups["departure_min"].astype(int))
     .groupby("departure_minute", as_index=False)["group_size"].sum()
@@ -767,12 +977,40 @@ with map_col:
     with st.container(height=760, key="map_stage"):
         st.markdown("### Tsunami Evacuation Scenario Explorer")
         st.caption("Research prototype · map-selected route is a screening estimate on an unreviewed OSM graph; tsunami depths are static. Not for emergency guidance.")
+        search_cols = st.columns([2.1, 3.9])
+        map_search_query = search_cols[0].text_input(
+            "Find a building, road, or street",
+            key="map_search_query",
+            placeholder="Type at least 2 characters",
+            on_change=clear_map_search_selection,
+        )
+        search_matches = [
+            item for item in map_search_catalog
+            if len(map_search_query.strip()) >= 2
+            and map_search_query.strip().casefold() in item["search_text"].casefold()
+        ][:100]
+        search_labels = [item["label"] for item in search_matches]
+        search_selection = search_cols[1].selectbox(
+            "Search results",
+            options=search_labels,
+            index=None,
+            placeholder="Choose a matching map feature",
+            key="map_search_selected",
+            disabled=not search_matches,
+            on_change=apply_map_search_selection,
+            help="First type at least two characters in the search box on the left. Then open this menu and choose a match. Search covers named OpenStreetMap features packaged with this project; unnamed buildings and roads are not searchable.",
+        )
+        if len(map_search_query.strip()) >= 2 and not search_matches:
+            search_cols[1].caption("No named map features match that text in the included data.")
+        selected_map_search = next(
+            (item for item in map_search_catalog if item["label"] == search_selection), None
+        )
         control_cols = st.columns([3.5, 1.05, 1.2, 1.0, 1.45])
         map_extent = control_cols[0].radio("Map extent", ["Gubat", "Daet", "Daet–Basud"], horizontal=True, key="map_extent")
         show_roads = control_cols[1].checkbox("OSM roads", value=True, key="show_roads")
-        show_hazard = control_cols[2].checkbox("Depth zones", value=True, key="show_hazard")
-        show_boundaries = control_cols[3].checkbox("Boundaries", value=True, key="show_boundaries")
-        show_synthetic_zones = control_cols[4].checkbox("Named origins", value=True, key="show_origins")
+        show_hazard = control_cols[2].checkbox("Depth zones", value=False, key="show_hazard_v2")
+        show_boundaries = control_cols[3].checkbox("Boundaries", value=False, key="show_boundaries_v2")
+        show_synthetic_zones = control_cols[4].checkbox("Named origins", value=False, key="show_origins_v2")
         route_control_cols = st.columns([2.2, 2.0, 1.6, 1.4, 3.5])
         map_selection_mode = route_control_cols[0].selectbox("Map point type", ["Receiving pin", "Origin area"], key="map_point_type")
         pick_destination_on_map = route_control_cols[1].toggle(
@@ -919,17 +1157,34 @@ with map_col:
                                    "Synthetic people: %{customdata[3]}<br>Synthetic groups: %{customdata[4]}<br>"
                                    "Anchor offset: %{customdata[5]} m<br>%{customdata[6]}<extra></extra>"),
                 ))
+            if selected_map_search:
+                fig.add_trace(go.Scattermapbox(
+                    lon=[selected_map_search["lon"]],
+                    lat=[selected_map_search["lat"]],
+                    mode="markers+text",
+                    text=[selected_map_search["name"]],
+                    textposition="top center",
+                    marker={"size": 18, "color": "#7c3aed", "symbol": "circle"},
+                    name="Search result",
+                    customdata=[[selected_map_search["kind"], selected_map_search["name"]]],
+                    hovertemplate="%{customdata[0]} · %{customdata[1]}<br>Approximate search location<extra></extra>",
+                ))
             centers = {
                 "Gubat": {"lon": 122.975, "lat": 14.118},
                 "Daet": {"lon": 122.944, "lat": 14.109},
                 "Daet–Basud": {"lon": 122.973, "lat": 14.025},
             }
             zoom_levels = {"Gubat": 13.0, "Daet": 10.5, "Daet–Basud": 9.2}
+            map_center = (
+                {"lon": selected_map_search["lon"], "lat": selected_map_search["lat"]}
+                if selected_map_search else centers[map_extent]
+            )
+            map_zoom = 16.0 if selected_map_search else zoom_levels[map_extent]
             fig.update_layout(
                 height=480, margin={"l": 0, "r": 0, "t": 0, "b": 0}, showlegend=False,
-                mapbox={"style": "open-street-map", "center": centers[map_extent], "zoom": zoom_levels[map_extent]},
+                mapbox={"style": "open-street-map", "center": map_center, "zoom": map_zoom},
                 clickmode="event+select",
-                uirevision=f"gubat-map-{map_extent}",
+                uirevision=f"scenario-map-{map_extent}-{selected_map_search['label'] if selected_map_search else 'default'}",
             )
             st.plotly_chart(
                 fig,
@@ -1047,6 +1302,29 @@ with details_col:
                         )
                     st.markdown("**Capacity used in this scenario**")
                     st.dataframe(pd.DataFrame(destination_capacity_summary), use_container_width=True, hide_index=True)
+                    if origin_pin_connectivity_rows:
+                        st.markdown("**Origin-to-pin connectivity and planned shares**")
+                        st.dataframe(
+                            pd.DataFrame(origin_pin_connectivity_rows),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                        disconnected_rows = [
+                            row for row in origin_pin_connectivity_rows
+                            if row["Connectivity"] == "Not connected in filtered graph"
+                            and row["Closest graph-node gap (m)"] is not None
+                        ]
+                        if disconnected_rows:
+                            st.markdown("**Disconnected pairs · nearest mapped endpoints for review**")
+                            st.dataframe(pd.DataFrame(disconnected_rows)[[
+                                "Origin area", "Candidate pin", "Closest graph-node gap (m)",
+                                "Closest origin-side node ID", "Closest origin-side node", "Origin-side mapped road(s)",
+                                "Closest pin-side node ID", "Closest pin-side node", "Pin-side mapped road(s)",
+                            ]], use_container_width=True, hide_index=True)
+                        st.caption(
+                            "A planned share is only allocatable when the origin and pin are connected in the filtered graph. "
+                            "Nearest endpoints and gaps are screening diagnostics to locate a review area; they do not establish a real-world road connection or route safety."
+                        )
                     if route_assignments:
                         assigned_people = sum(item["people"] for item in route_assignments)
                         assigned_groups = sum(item["groups"] for item in route_assignments)
@@ -1135,6 +1413,16 @@ with details_col:
                 st.markdown("### Daet–Basud road review")
                 st.caption("OSM road/path coverage for GIS screening. This is separate from the R1–R12 route demo.")
                 st.warning("The image does not confirm pedestrian access, crossings, road condition, safety, or a receiving site in Basud.")
+                st.info(
+                    "Bridge coverage check: the full regional OSM source contains Daet Bridge 1 (F. Pimentel Avenue; "
+                    "lanes=4, foot=yes, sidewalk=both on one source way), consistent with the user's report of the "
+                    "fourth-lane opening. The source tag does not independently confirm when it opened or its current "
+                    "condition. A separate candidate road layer now keeps the original Daet–Basud road geometries and "
+                    "adds mapped road extensions within 100 m of the unchanged administrative boundary. The bridge "
+                    "and its mapped approaches are included in the largest raw graph component. This is still an OSM "
+                    "geometry connection, not a field-verified pedestrian route; lane count does not determine "
+                    "pedestrian capacity."
+                )
                 st.markdown("### Gubat origin access screening")
                 st.caption(
                     "Compares each named-area anchor with nearby mapped road geometry and its recorded graph node. "
@@ -1162,9 +1450,86 @@ with details_col:
                     )
                 else:
                     st.info("Origin access screening CSV has not been generated yet.")
-                st.metric("Mapped road/path features", "1,551")
-                st.metric("Geometry-screening components", "136")
-                st.caption("Components are review aids; they are not proof of disconnected real-world roads. Component review remains incomplete.")
+                st.markdown("### Road-component proximity review")
+                st.caption(
+                    "Ranked pairs of graph components with the closest mapped endpoints. Each gap is a straight-line "
+                    "measurement for manual review; it is not a road, connector, or recommended route. No links are "
+                    "added automatically."
+                )
+                if component_gap_review_csv.exists():
+                    gap_review = pd.read_csv(component_gap_review_csv).head(10)
+                    gap_columns = {
+                        "review_rank": "Rank",
+                        "component_a": "Component A",
+                        "component_a_vertices": "A nodes",
+                        "component_b": "Component B",
+                        "component_b_vertices": "B nodes",
+                        "gap_distance_m": "Endpoint gap (m)",
+                        "node_a_mapped_roads": "Roads near A",
+                        "node_b_mapped_roads": "Roads near B",
+                        "node_a_osm_way_ids": "OSM way IDs near A",
+                        "node_b_osm_way_ids": "OSM way IDs near B",
+                        "review_status": "Review status",
+                    }
+                    st.dataframe(gap_review[list(gap_columns)].rename(columns=gap_columns), use_container_width=True, hide_index=True)
+                    gap_downloads = st.columns(2)
+                    with gap_downloads[0]:
+                        st.download_button(
+                            "Download full component review (CSV)",
+                            data=component_gap_review_csv.read_bytes(),
+                            file_name="daet_basud_component_gap_review.csv",
+                            mime="text/csv",
+                        )
+                    with gap_downloads[1]:
+                        if component_gap_review_geojson.exists():
+                            st.download_button(
+                                "Download visual review leads (GeoJSON)",
+                                data=component_gap_review_geojson.read_bytes(),
+                                file_name="daet_basud_component_gap_review.geojson",
+                                mime="application/geo+json",
+                            )
+                else:
+                    st.info("Component-gap review has not been generated yet.")
+                st.metric("Road/path features in context layer", "2,018")
+                st.metric("Raw candidate-graph components", "37")
+                st.caption(
+                    "Counts describe the current OSM context layer and graph build. Components are review aids, "
+                    "not proof of disconnected real-world roads; all suggested links still need manual review."
+                )
+                road_edges = map_data["road_edges"]
+                bridge_fields = {"bridge", "bridge_name", "lanes", "sidewalk"}
+                if bridge_fields.issubset(road_edges.columns):
+                    bridge_rows = road_edges.loc[
+                        road_edges["edge_id"].astype(str).str.endswith("_F")
+                        & (
+                            road_edges["bridge"].fillna("").astype(str).ne("")
+                            | road_edges["bridge_name"].fillna("").astype(str).ne("")
+                        )
+                    ].drop_duplicates("osm_id")
+                    if not bridge_rows.empty:
+                        st.markdown("### Bridges and crossing tags")
+                        bridge_columns = {
+                            "bridge_name": "Bridge name",
+                            "name": "Road",
+                            "highway": "OSM class",
+                            "lanes": "Road lanes (OSM tag)",
+                            "foot": "Foot access (OSM tag)",
+                            "sidewalk": "Sidewalk (OSM tag)",
+                            "layer": "Layer (grade separation)",
+                            "osm_id": "OSM way ID",
+                        }
+                        for column in bridge_columns:
+                            if column not in bridge_rows:
+                                bridge_rows[column] = ""
+                        st.dataframe(
+                            bridge_rows[list(bridge_columns)].rename(columns=bridge_columns),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                        st.caption(
+                            "These are source-map tags, not field confirmation. Lane count is not pedestrian capacity, "
+                            "and a foot=yes tag does not verify safe crossing conditions or current bridge status."
+                        )
                 if road_review_png.exists():
                     st.image(road_review_png, caption="Daet–Basud OSM coverage · screening only", use_container_width=True)
                 else:
