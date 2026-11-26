@@ -3,7 +3,7 @@
 An early, local web prototype for comparing evacuation scenarios. It is designed so the model and interface can be started with synthetic example data, then updated as verified Barangay Gubat data becomes available.
 
 See [ROADMAP.md](ROADMAP.md) for the agreed study extent, pending data decisions, implementation stages, and next actions.
-The staged plan for a coupled tsunami-and-evacuation replay is in [TSUNAMI_SIMULATION_PLAN.md](TSUNAMI_SIMULATION_PLAN.md). The project includes separate previews: evacuation group playback is enabled by default when groups have assigned paths, and the existing static tsunami depth classes can be revealed illustratively. Neither preview represents physical wave arrival or propagation; a real coupled replay requires sourced, time-dependent model output.
+The staged plan for a coupled tsunami-and-evacuation replay is in [TSUNAMI_SIMULATION_PLAN.md](TSUNAMI_SIMULATION_PLAN.md). Evacuation group playback is enabled by default when groups have assigned paths. Tsunami depth polygons remain static because the bundled client layer has no time steps or shoreline arrival times; a real coupled replay requires sourced, time-dependent model output.
 Use [`data/tsunami_time_series_data_contract.md`](data/tsunami_time_series_data_contract.md) and [`data/tsunami_scenario_manifest_template.csv`](data/tsunami_scenario_manifest_template.csv) to prepare and review incoming time-dependent model output.
 [`data/tsunami_time_series_request_template.md`](data/tsunami_time_series_request_template.md) contains an unsent request draft for the needed source data.
 `tsunami_scenarios.py` checks manifest metadata and time-frame GeoPackages before scenarios appear in the app; this is a structural intake check, not scientific validation.
@@ -24,7 +24,7 @@ The current walking-route assumptions and OSM tag coverage are documented in [`d
 
 ## Important scope note
 
-The included network and population are **synthetic demonstration data**, not measurements or official recommendations for Barangay Gubat. The prototype models movement over a sample road graph; the optional map reveal only displays static inundation-depth classes in an assumed visual order. It does not simulate tsunami generation, wave propagation, timed inundation, warning issuance, or real-time navigation. Do not use its sample outputs for emergency decisions. Replace the example data and review assumptions with the Barangay and Daet MDRRMO before interpreting results.
+The included network and population are **synthetic demonstration data**, not measurements or official recommendations for Barangay Gubat. The prototype models movement over a sample road graph. Gubat uses its clipped tsunami depth layer; the Daet map extent uses the broader original client layer and shows the full Daet boundary, with inundation marked only where the source has polygons. It does not simulate tsunami generation, wave propagation, timed inundation, warning issuance, or real-time navigation. Do not use its sample outputs for emergency decisions. Confirm the hazard source and review assumptions with the Barangay and Daet MDRRMO before interpreting results.
 
 ## Client-provided GIS and planning inputs
 

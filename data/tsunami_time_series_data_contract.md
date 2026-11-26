@@ -1,6 +1,6 @@
 # Tsunami time-series data intake contract
 
-This defines the data we need before the app can display a tsunami changing over simulation time. The current maximum-inundation polygons do not satisfy this contract.
+This defines the data we need before the app can display a tsunami changing over simulation time. The project contains a static maximum-inundation layer for Gubat and the broader original client layer used in the Daet extent; neither contains time steps or shoreline arrival times, so neither satisfies this contract.
 
 Public PHIVOLCS listings include a Daet tsunami JPG and KMZ map, and Camarines Norte-wide 2007/2021 KMZ/PNG maps; those listings establish that map products exist, but do not establish that time-stepped depth/arrival outputs are publicly available. See the [Daet municipal listing](https://gisweb.phivolcs.dost.gov.ph/gisweb/storage/hazard-maps/region-v-%28bicol-region%29/camarines-norte/daet-%28capital%29/earthquake/tsunami/) and the [Camarines Norte provincial listing](https://gisweb.phivolcs.dost.gov.ph/gisweb/storage/hazard-maps/region-v-%28bicol-region%29/camarines-norte/provincial/earthquake/tsunami/). A map file alone should not be assumed to contain animation frames.
 

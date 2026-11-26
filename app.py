@@ -253,6 +253,7 @@ def load_interactive_map_data(base_dir: str, graph_revision: tuple[int, int]):
     base = Path(base_dir)
     return {
         "hazard": read_gpkg_features(base / "data" / "gubat_tsunami_clip_fixed.gpkg"),
+        "daet_hazard": read_gpkg_features(base / "data" / "daet_tsunami_inundation.gpkg"),
         "gubat_boundary": read_gpkg_features(base / "data" / "gubat_boundary_traced_fixed.gpkg"),
         "daet_boundary": read_gpkg_features(base / "data" / "daet_boundary.gpkg"),
         "regional_boundary": read_gpkg_features(base / "data" / "daet_basud_boundary.gpkg"),
@@ -412,74 +413,6 @@ def add_polygon_layer(
             ))
             first = False
     return trace_indices
-
-
-TSUNAMI_DEPTH_REVEAL_ORDER = [
-    "< 1 meter",
-    "1 to 1.99 meters",
-    "2 to 2.99 meters",
-    "3 to 3.99 meters",
-    "4 to 4.99 meters",
-    "5 to 6 meters",
-]
-
-
-def add_illustrative_depth_reveal(fig, traces_by_depth):
-    """Add an explicitly illustrative cumulative reveal of static depth classes."""
-    trace_indices = [index for indices in traces_by_depth.values() for index in indices]
-    if not trace_indices:
-        return
-
-    frame_names = [f"reveal-{step}" for step in range(len(TSUNAMI_DEPTH_REVEAL_ORDER) + 1)]
-    for step, frame_name in enumerate(frame_names):
-        visible_depths = set(TSUNAMI_DEPTH_REVEAL_ORDER[:step])
-        frame = go.Frame(
-            name=frame_name,
-            data=[
-                go.Scattermapbox(
-                    visible=(depth in visible_depths)
-                    if depth in TSUNAMI_DEPTH_REVEAL_ORDER
-                    else step == len(TSUNAMI_DEPTH_REVEAL_ORDER)
-                )
-                for depth, indices in traces_by_depth.items()
-                for _ in indices
-            ],
-            traces=trace_indices,
-        )
-        fig.frames += (frame,)
-
-    fig.update_layout(
-        height=550,
-        margin={"l": 0, "r": 0, "t": 0, "b": 10},
-        mapbox={**fig.layout.mapbox.to_plotly_json(), "domain": {"x": [0, 1], "y": [0.23, 1]}},
-        updatemenus=[{
-            "type": "buttons", "direction": "left", "showactive": False,
-            "x": 0.01, "y": 0.02, "xanchor": "left", "yanchor": "bottom",
-            "pad": {"r": 8, "t": 0},
-            "buttons": [
-                {"label": "▶ Play", "method": "animate",
-                 "args": [None, {"frame": {"duration": 900, "redraw": True},
-                                  "transition": {"duration": 0}, "fromcurrent": True,
-                                  "mode": "immediate"}]},
-                {"label": "Ⅱ Pause", "method": "animate",
-                 "args": [[None], {"frame": {"duration": 0, "redraw": False},
-                                    "mode": "immediate", "transition": {"duration": 0}}]},
-                {"label": "↺ Restart", "method": "animate",
-                 "args": [[frame_names[0]], {"frame": {"duration": 0, "redraw": True},
-                                               "mode": "immediate", "transition": {"duration": 0}}]},
-            ],
-        }],
-        sliders=[{
-            "active": 0, "x": 0.28, "y": 0.045, "len": 0.70,
-            "currentvalue": {"prefix": "Illustrative step ", "visible": True},
-            "steps": [
-                {"label": str(step), "method": "animate",
-                 "args": [[frame_name], {"frame": {"duration": 0, "redraw": True},
-                                           "mode": "immediate", "transition": {"duration": 0}}]}
-                for step, frame_name in enumerate(frame_names)
-            ],
-        }],
-    )
 
 
 def add_evacuation_movement_animation(
@@ -815,6 +748,10 @@ try:
     )
     graph_revision = tuple(path.stat().st_mtime_ns for path in graph_paths)
     map_data = load_interactive_map_data(str(project_dir), graph_revision)
+    active_extent = st.session_state.get("map_extent", "Gubat")
+    active_hazard_features = (
+        map_data["hazard"] if active_extent == "Gubat" else map_data["daet_hazard"]
+    )
     map_search_catalog = load_map_search_catalog(str(project_dir), graph_revision)
     zone_anchors = scenario_generation.load_named_zone_anchors(
         Path(project_dir) / "data" / "origin_zone_candidates.csv",
@@ -1098,7 +1035,7 @@ for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict
 for assignment in route_summary.values():
     path_nodes = assignment["nodes"]
     assignment["hazard_overlap_m_by_class"] = route_hazard_overlap(
-        path_nodes, routing_graph, map_node_lookup, map_data["hazard"]
+        path_nodes, routing_graph, map_node_lookup, active_hazard_features
     )
     assignment["named_roads"] = list(dict.fromkeys(
         str(routing_graph[a][b].get("name", "")).strip()
@@ -1317,16 +1254,11 @@ with map_col:
         map_extent = st.session_state["map_extent"]
         show_roads = bool(st.session_state["show_roads"])
         show_hazard = bool(st.session_state["show_hazard_v2"])
-        hazard_display_mode = st.session_state.get(
-            "hazard_display_mode", "Static mapped depth zones"
-        )
-        illustrative_depth_reveal = hazard_display_mode == "Illustrative depth-class reveal"
         st.session_state.setdefault("evacuation_movement_enabled_v2", True)
         animate_evacuation_groups = bool(
             st.session_state.get("evacuation_movement_enabled_v2", True)
             and group_route_assignments
         )
-        render_illustrative_reveal = illustrative_depth_reveal and not animate_evacuation_groups
         show_boundaries = bool(st.session_state["show_boundaries_v2"])
         show_synthetic_zones = bool(st.session_state["show_origins_v2"])
         map_selection_mode = st.session_state["map_point_type"]
@@ -1336,7 +1268,6 @@ with map_col:
 
         try:
             fig = go.Figure()
-            hazard_traces_by_depth = {}
             if show_hazard:
                 depth_colors = {
                     "< 1 meter": ("#d6b76c", "#8f7842"),
@@ -1346,14 +1277,12 @@ with map_col:
                     "4 to 4.99 meters": ("#47d49a", "#1a805a"),
                     "5 to 6 meters": ("#d76bd8", "#813c83"),
                 }
-                for feature in map_data["hazard"]:
+                for feature in active_hazard_features:
                     depth = feature["properties"].get("Inun_depth", "Depth not classified")
                     fill, outline = depth_colors.get(depth, ("#7c3aed", "#4c1d95"))
-                    hazard_traces_by_depth.setdefault(depth, []).extend(
-                        add_polygon_layer(
-                            fig, [feature], fill, outline, f"Mapped depth · {depth}",
-                            True, 0.45, visible=not render_illustrative_reveal,
-                        )
+                    add_polygon_layer(
+                        fig, [feature], fill, outline, f"Mapped depth · {depth}",
+                        True, 0.45,
                     )
             if show_roads:
                 add_road_layer(fig, map_data["road_edges"], map_data["road_nodes"], road_bbox_for_extent(map_extent))
@@ -1529,18 +1458,11 @@ with map_col:
                 clickmode="event+select",
                 uirevision=f"scenario-map-{map_extent}-{selected_map_search['label'] if selected_map_search else 'default'}",
             )
-            if show_hazard and render_illustrative_reveal:
-                add_illustrative_depth_reveal(fig, hazard_traces_by_depth)
             animated_group_count = 0
             if animate_evacuation_groups:
                 animated_group_count = add_evacuation_movement_animation(
                     fig, group_route_assignments, map_node_lookup, routing_graph,
                     destination_node_ids, 1.15 * float(speed_scale),
-                )
-            if show_hazard and render_illustrative_reveal:
-                st.info(
-                    "**Illustrative depth-class reveal — not tsunami arrival time.** "
-                    "The playback reveals the supplied static depth classes in an assumed order; it does not show water moving inland."
                 )
             st.plotly_chart(
                 fig,
@@ -1553,8 +1475,7 @@ with map_col:
             legend_items = []
             if show_hazard:
                 for label, (fill, _) in depth_colors.items():
-                    legend_prefix = "Mapped depth · " if render_illustrative_reveal else "Inundation · "
-                    legend_items.append(f'<span class="map-legend-item"><i class="map-legend-swatch" style="background:{fill}"></i>{legend_prefix}{label}</span>')
+                    legend_items.append(f'<span class="map-legend-item"><i class="map-legend-swatch" style="background:{fill}"></i>Inundation · {label}</span>')
             if show_roads:
                 road_legend = [("#64748b", "service"), ("#f97316", "secondary"), ("#64748b", "residential"),
                                ("#94a3b8", "unclassified"), ("#f59e0b", "tertiary"), ("#14b8a6", "footway"), ("#65a30d", "track")]
@@ -1605,8 +1526,6 @@ with map_col:
                     "Dots start at representative origin road nodes; size represents group size and color matches the receiving pin. "
                     "Playback time is an assumed free-flow estimate. It does not model actual household locations, congestion, individual movement, road safety, or tsunami arrival. Unassigned groups do not move."
                 )
-            if animate_evacuation_groups and illustrative_depth_reveal:
-                st.info("Evacuation movement is using the map animation controls; mapped depth classes remain static. Turn off evacuation movement to use the illustrative depth-class reveal.")
             shared_component_zones = max(len(zone_summary) - zone_summary["shares_candidate_component_with"].eq("No other included origin candidate").sum(), 0)
             st.caption(
                 f"OSM © OpenStreetMap contributors · pan/zoom enabled · raw graph screen: {shared_component_zones}/{len(zone_summary)} "
@@ -1671,24 +1590,13 @@ with map_col:
 
         with st.container(border=True):
             st.markdown("### Tsunami map preview")
-            st.selectbox(
-                "Hazard display",
-                ["Static mapped depth zones", "Illustrative depth-class reveal"],
-                key="hazard_display_mode",
-                disabled=animate_evacuation_groups,
-                help="The illustrative option reveals the existing maximum-depth classes in sequence. Its steps are not tsunami arrival times.",
+            st.caption(
+                "Mapped maximum-inundation depth is shown statically. The Daet extent uses the full area of the bundled client layer; "
+                "areas outside its polygons are unclassified, not evidence of zero tsunami risk. A shoreline-to-inland animation needs "
+                "validated arrival-time or time-step data and is not inferred from these depth classes."
             )
             if animate_evacuation_groups:
-                st.info("The evacuation group timeline is active in the map. Hazard classes stay static during this separate playback.")
-            elif illustrative_depth_reveal:
-                if show_hazard:
-                    st.warning(
-                        "Illustrative map reveal only: the six mapped maximum-depth classes appear cumulatively from lower to higher classes. "
-                        "The order and playback speed are visual assumptions, not modeled water arrival, wave motion, or evacuation timing. "
-                        "Use the Play/Pause/Restart buttons and step slider below the map."
-                    )
-                else:
-                    st.info("Turn on **Depth zones** above the map to display the illustrative reveal.")
+                st.info("The evacuation group playback shows people moving along assigned candidate routes; the mapped tsunami depth remains static.")
 
         with st.container(border=True):
             st.markdown("### Time-dependent tsunami simulation")
@@ -1727,7 +1635,7 @@ with map_col:
             st.progress(0, text="Simulation timeline · inactive")
             if not tsunami_time_series_available:
                 st.caption(
-                    "🔒 The project has a static maximum-depth map and an illustrative visual reveal, but no validated time-dependent scenario. "
+                    "🔒 The project has static maximum-inundation depth polygons, but no validated time-dependent tsunami scenario. "
                     + (tsunami_scenario_issues[0] if tsunami_scenario_issues else "Add sourced model frames before animating water.")
                 )
             elif not tsunami_playback_engine_available:
@@ -1946,19 +1854,19 @@ with details_col:
                 st.dataframe(inputs["data_sources"], use_container_width=True, hide_index=True)
                 st.markdown("### Tsunami hazard layer used by the map")
                 st.write(
-                    "The map uses `data/gubat_tsunami_clip_fixed.gpkg`, a six-feature clip of "
-                    "`tsunamishp/tsunami.shp` to the project's traced Gubat boundary. Its coordinate "
-                    "reference system is WGS 84 (EPSG:4326), and its six `Inun_depth` classes range "
-                    "from < 1 meter through 5 to 6 meters. The client describes these as inundation "
-                    "depths from ground surface to the top of accumulated water."
+                    "Gubat uses `data/gubat_tsunami_clip_fixed.gpkg`, clipped to the traced Gubat boundary. "
+                    "Daet uses `data/daet_tsunami_inundation.gpkg`, converted from the complete bundled "
+                    "client shapefile `tsunamishp/tsunami.shp`. The Daet layer has six `Inun_depth` classes "
+                    "from < 1 meter through 5 to 6 meters in WGS 84 (EPSG:4326). The source polygons cover "
+                    "only part of Daet, mainly the coastal/eastern area; the map keeps the full Daet boundary "
+                    "visible, but does not paint inland areas outside the source polygons as inundated."
                 )
                 st.warning(
-                    "The source shapefile's issuing organization, product date/version, original full "
-                    "coverage, and reuse terms are not recorded in the bundled GIS metadata. The displayed "
-                    "extent is only the clip inside the traced Gubat boundary (approximately 122.963108–"
-                    "122.986481° E, 14.108981–14.127014° N). This static layer contains no arrival times "
-                    "or time frames. The reveal is illustrative only; Start simulation remains unavailable "
-                    "until sourced, reviewed time-dependent model data and a playback engine are present."
+                    "The shapefile's issuing organization, product date/version, and reuse terms are not "
+                    "recorded in the project metadata. Its full polygon bounds are approximately "
+                    "122.946085–122.997387° E and 14.079401–14.150687° N. These are static depth zones: "
+                    "they do not include shoreline arrival times or time frames. Start simulation remains "
+                    "unavailable until sourced, reviewed time-dependent model data and a playback engine are present."
                 )
                 st.markdown("### Interpretation limits")
                 st.write(
