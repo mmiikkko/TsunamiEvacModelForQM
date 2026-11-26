@@ -10,6 +10,7 @@ import streamlit as st
 from gis_layers import read_gpkg_features
 import scenario_generation
 from simulation import load_inputs, node_coordinate_lookup, run_simulation
+from tsunami_scenarios import load_valid_tsunami_scenarios, scenario_input_revision
 
 
 st.set_page_config(page_title="Evacuation Scenario Explorer", page_icon="🌊", layout="wide")
@@ -68,6 +69,19 @@ origin_access_review_csv = Path(__file__).parent / "data" / "origin_access_revie
 component_gap_review_csv = Path(__file__).parent / "data" / "daet_basud_component_gap_review.csv"
 component_gap_review_geojson = Path(__file__).parent / "data" / "daet_basud_component_gap_review.geojson"
 
+@st.cache_data(show_spinner=False)
+def cached_tsunami_scenario_validation(base_dir: str, revision: tuple):
+    return load_valid_tsunami_scenarios(base_dir)
+
+
+tsunami_scenarios, tsunami_scenario_issues = cached_tsunami_scenario_validation(
+    str(project_dir), scenario_input_revision(project_dir)
+)
+tsunami_time_series_available = bool(tsunami_scenarios)
+# Scenario loading and playback are separate increments. The clock/renderer
+# will be enabled only after the frame loader and timeline engine exist.
+tsunami_playback_engine_available = False
+
 try:
     inputs = load_inputs(str(Path(__file__).parent / "data"))
     origin_zones = pd.read_csv(Path(__file__).parent / "data" / "origin_zones.csv")
@@ -83,7 +97,14 @@ except Exception as exc:
 with st.sidebar:
     st.header("Scenario settings")
     population_scale = st.slider("Population multiplier", 0.5, 2.0, 1.0, 0.1)
-    speed_scale = st.slider("Walking speed multiplier", 0.5, 1.5, 1.0, 0.05)
+    speed_scale = st.slider(
+        "Walking speed multiplier", 0.5, 1.5, 1.0, 0.05,
+        help="Scales modeled walking time from a uniform baseline of 1.15 m/s. It does not change the selected route because every included road link uses the same speed.",
+    )
+    st.caption(
+        f"Modeled walk speed: {1.15 * speed_scale:.2f} m/s on every included link. "
+        "No congestion, slope, crossing delay, mobility differences, or time-varying tsunami conditions are modeled."
+    )
     capacity_scale = st.slider("Path capacity multiplier", 0.5, 1.5, 1.0, 0.05)
     departure_delay = st.slider("Departure delay (minutes)", 0, 15, 0)
     planning_window = st.slider("Planning comparison window (minutes)", 5, 60, 20)
@@ -363,13 +384,18 @@ def closest_nodes_between_components(source_component, destination_components, c
     return best
 
 
-def add_polygon_layer(fig, features, fill_color, line_color, name, show_legend=False, fill_opacity=0.35):
+def add_polygon_layer(
+    fig, features, fill_color, line_color, name, show_legend=False,
+    fill_opacity=0.35, visible=True,
+):
     first = True
+    trace_indices = []
     for feature in features:
         for polygon in polygon_parts(feature["geometry"]):
             if not polygon:
                 continue
             ring = polygon[0]
+            trace_indices.append(len(fig.data))
             fig.add_trace(go.Scattermapbox(
                 lon=[point[0] for point in ring],
                 lat=[point[1] for point in ring],
@@ -381,9 +407,217 @@ def add_polygon_layer(fig, features, fill_color, line_color, name, show_legend=F
                 name=name,
                 legendgroup=name,
                 showlegend=show_legend and first,
+                visible=visible,
                 hoverinfo="skip",
             ))
             first = False
+    return trace_indices
+
+
+TSUNAMI_DEPTH_REVEAL_ORDER = [
+    "< 1 meter",
+    "1 to 1.99 meters",
+    "2 to 2.99 meters",
+    "3 to 3.99 meters",
+    "4 to 4.99 meters",
+    "5 to 6 meters",
+]
+
+
+def add_illustrative_depth_reveal(fig, traces_by_depth):
+    """Add an explicitly illustrative cumulative reveal of static depth classes."""
+    trace_indices = [index for indices in traces_by_depth.values() for index in indices]
+    if not trace_indices:
+        return
+
+    frame_names = [f"reveal-{step}" for step in range(len(TSUNAMI_DEPTH_REVEAL_ORDER) + 1)]
+    for step, frame_name in enumerate(frame_names):
+        visible_depths = set(TSUNAMI_DEPTH_REVEAL_ORDER[:step])
+        frame = go.Frame(
+            name=frame_name,
+            data=[
+                go.Scattermapbox(
+                    visible=(depth in visible_depths)
+                    if depth in TSUNAMI_DEPTH_REVEAL_ORDER
+                    else step == len(TSUNAMI_DEPTH_REVEAL_ORDER)
+                )
+                for depth, indices in traces_by_depth.items()
+                for _ in indices
+            ],
+            traces=trace_indices,
+        )
+        fig.frames += (frame,)
+
+    fig.update_layout(
+        height=550,
+        margin={"l": 0, "r": 0, "t": 0, "b": 10},
+        mapbox={**fig.layout.mapbox.to_plotly_json(), "domain": {"x": [0, 1], "y": [0.23, 1]}},
+        updatemenus=[{
+            "type": "buttons", "direction": "left", "showactive": False,
+            "x": 0.01, "y": 0.02, "xanchor": "left", "yanchor": "bottom",
+            "pad": {"r": 8, "t": 0},
+            "buttons": [
+                {"label": "▶ Play", "method": "animate",
+                 "args": [None, {"frame": {"duration": 900, "redraw": True},
+                                  "transition": {"duration": 0}, "fromcurrent": True,
+                                  "mode": "immediate"}]},
+                {"label": "Ⅱ Pause", "method": "animate",
+                 "args": [[None], {"frame": {"duration": 0, "redraw": False},
+                                    "mode": "immediate", "transition": {"duration": 0}}]},
+                {"label": "↺ Restart", "method": "animate",
+                 "args": [[frame_names[0]], {"frame": {"duration": 0, "redraw": True},
+                                               "mode": "immediate", "transition": {"duration": 0}}]},
+            ],
+        }],
+        sliders=[{
+            "active": 0, "x": 0.28, "y": 0.045, "len": 0.70,
+            "currentvalue": {"prefix": "Illustrative step ", "visible": True},
+            "steps": [
+                {"label": str(step), "method": "animate",
+                 "args": [[frame_name], {"frame": {"duration": 0, "redraw": True},
+                                           "mode": "immediate", "transition": {"duration": 0}}]}
+                for step, frame_name in enumerate(frame_names)
+            ],
+        }],
+    )
+
+
+def add_evacuation_movement_animation(
+    fig, group_routes, node_lookup, graph, destination_node_ids, speed_mps
+):
+    """Animate anonymous groups along assigned candidate road-graph paths."""
+    if not group_routes or speed_mps <= 0:
+        return 0
+
+    colors = ["#7c3aed", "#f97316", "#06b6d4", "#e11d48", "#16a34a", "#eab308"]
+    pin_index_by_node = {str(node_id): index for index, node_id in enumerate(destination_node_ids)}
+    trace_index_by_pin = {}
+    for pin_index, node_id in enumerate(destination_node_ids):
+        trace_index_by_pin[str(node_id)] = len(fig.data)
+        fig.add_trace(go.Scattermapbox(
+            lon=[], lat=[], mode="markers",
+            marker={"size": [], "color": colors[pin_index % len(colors)], "opacity": 0.95},
+            customdata=[],
+            name=f"Evacuee groups moving to Pin {pin_index + 1}",
+            hovertemplate=(
+                "%{customdata[0]}<br>Synthetic group size: %{customdata[1]} people<br>"
+                "Moving to Pin %{customdata[2]}"
+                "<extra></extra>"
+            ),
+        ))
+
+    prepared = []
+    path_cache = {}
+    for group in group_routes:
+        node_ids = [str(node_id) for node_id in group["nodes"]]
+        if len(node_ids) < 2 or str(group["destination_node_id"]) not in trace_index_by_pin:
+            continue
+        path_key = (str(group["destination_node_id"]), tuple(node_ids))
+        if path_key not in path_cache:
+            coordinates = [node_lookup.loc[node_id] for node_id in node_ids]
+            cumulative_m = [0.0]
+            for left, right in zip(node_ids, node_ids[1:]):
+                cumulative_m.append(
+                    cumulative_m[-1] + float(graph[left][right].get("length_m", 0.0))
+                )
+            path_cache[path_key] = (coordinates, cumulative_m)
+        coordinates, cumulative_m = path_cache[path_key]
+        route_length_m = cumulative_m[-1]
+        if route_length_m <= 0:
+            continue
+        travel_min = route_length_m / speed_mps / 60.0
+        prepared.append({
+            **group,
+            "node_ids": node_ids,
+            "coordinates": coordinates,
+            "cumulative_m": cumulative_m,
+            "route_length_m": route_length_m,
+            "travel_min": travel_min,
+        })
+
+    if not prepared:
+        return 0
+
+    end_min = max(float(group["departure_min"]) + group["travel_min"] for group in prepared)
+    frame_count = min(40, max(8, math.ceil(end_min / 0.5)))
+    step_min = end_min / frame_count if end_min > 0 else 1.0
+    times = [index * step_min for index in range(frame_count + 1)]
+    frame_names = [f"evacuation-{index:03d}" for index in range(len(times))]
+    moving_trace_indices = [trace_index_by_pin[node_id] for node_id in destination_node_ids]
+    frames = []
+
+    for frame_index, minute in enumerate(times):
+        pin_positions = {str(node_id): {"lon": [], "lat": [], "sizes": [], "customdata": []}
+                         for node_id in destination_node_ids}
+        for group in prepared:
+            elapsed = minute - float(group["departure_min"])
+            if elapsed < 0 or elapsed >= group["travel_min"]:
+                continue
+            distance_m = min(elapsed * speed_mps * 60.0, group["route_length_m"])
+            segment = 0
+            cumulative = group["cumulative_m"]
+            while segment < len(cumulative) - 2 and cumulative[segment + 1] < distance_m:
+                segment += 1
+            segment_length = cumulative[segment + 1] - cumulative[segment]
+            fraction = (distance_m - cumulative[segment]) / segment_length if segment_length else 0.0
+            start, finish = group["coordinates"][segment], group["coordinates"][segment + 1]
+            lon = float(start["lon"]) + (float(finish["lon"]) - float(start["lon"])) * fraction
+            lat = float(start["lat"]) + (float(finish["lat"]) - float(start["lat"])) * fraction
+            destination = str(group["destination_node_id"])
+            slot = pin_positions[destination]
+            slot["lon"].append(lon)
+            slot["lat"].append(lat)
+            slot["sizes"].append(min(20, 8 + math.sqrt(int(group["group_size"]))))
+            slot["customdata"].append([
+                str(group["origin"]), int(group["group_size"]), pin_index_by_node[destination] + 1,
+            ])
+        frame_data = [
+            go.Scattermapbox(
+                lon=pin_positions[str(node_id)]["lon"],
+                lat=pin_positions[str(node_id)]["lat"],
+                marker={"size": pin_positions[str(node_id)]["sizes"]},
+                customdata=pin_positions[str(node_id)]["customdata"],
+            )
+            for node_id in destination_node_ids
+        ]
+        frames.append(go.Frame(
+            name=frame_names[frame_index], data=frame_data, traces=moving_trace_indices,
+        ))
+
+    fig.frames += tuple(frames)
+    fig.update_layout(
+        height=550,
+        margin={"l": 0, "r": 0, "t": 0, "b": 10},
+        mapbox={**fig.layout.mapbox.to_plotly_json(), "domain": {"x": [0, 1], "y": [0.23, 1]}},
+        updatemenus=[{
+            "type": "buttons", "direction": "left", "showactive": False,
+            "x": 0.01, "y": 0.02, "xanchor": "left", "yanchor": "bottom",
+            "pad": {"r": 8, "t": 0},
+            "buttons": [
+                {"label": "▶ Play movement", "method": "animate",
+                 "args": [frame_names, {"frame": {"duration": 450, "redraw": True},
+                                          "transition": {"duration": 0}, "fromcurrent": True,
+                                          "mode": "immediate"}]},
+                {"label": "Ⅱ Pause", "method": "animate",
+                 "args": [[None], {"frame": {"duration": 0, "redraw": False},
+                                     "mode": "immediate", "transition": {"duration": 0}}]},
+                {"label": "↺ Restart", "method": "animate",
+                 "args": [[frame_names[0]], {"frame": {"duration": 0, "redraw": True},
+                                               "mode": "immediate", "transition": {"duration": 0}}]},
+            ],
+        }],
+        sliders=[{
+            "active": 0, "x": 0.28, "y": 0.045, "len": 0.70,
+            "currentvalue": {"prefix": "Evacuation minute ", "visible": True},
+            "steps": [
+                {"label": f"{minute:.1f}", "method": "animate",
+                 "args": [[frame_name], {"frame": {"duration": 0, "redraw": True},
+                                            "mode": "immediate", "transition": {"duration": 0}}]}
+                for minute, frame_name in zip(times, frame_names)
+            ],
+        }],
+    )
+    return len(prepared)
 
 
 def add_boundary_layer(fig, features, color, name):
@@ -649,6 +883,19 @@ try:
     forward_edges = map_data["road_edges"].loc[
         map_data["road_edges"]["edge_id"].astype(str).str.endswith("_F")
     ]
+    def pedestrian_link_allowed(access_value, foot_value, highway_value):
+        access_tag = str(access_value).strip().lower()
+        foot_tag = str(foot_value).strip().lower()
+        highway_tag = str(highway_value).strip().lower()
+        denied = {"no", "private", "restricted", "customers", "delivery", "permit"}
+        allowed = {"yes", "designated", "permissive", "official"}
+        if highway_tag == "construction" or foot_tag in denied | {"use_sidepath"}:
+            return False
+        # OSM's foot-specific tag takes precedence over the general access tag.
+        if foot_tag in allowed:
+            return True
+        return access_tag not in denied
+
     for edge in forward_edges.itertuples(index=False):
         length_m = max(float(edge.length_m), 0.0)
         candidate_graph.add_edge(
@@ -658,12 +905,8 @@ try:
             highway=str(edge.highway),
             name=str(edge.name),
         )
-        access_tag = str(edge.access).strip().lower()
-        foot_tag = str(edge.foot).strip().lower()
         highway_tag = str(edge.highway).strip().lower()
-        if (highway_tag != "construction"
-                and access_tag not in {"no", "private"}
-                and foot_tag not in {"no", "private", "use_sidepath"}):
+        if pedestrian_link_allowed(edge.access, edge.foot, highway_tag):
             routing_graph.add_edge(
                 str(edge.from_node), str(edge.to_node),
                 length_m=length_m,
@@ -750,6 +993,7 @@ destination_node_ids = list(dict.fromkeys(
     str(node_id) for node_id in st.session_state.get("candidate_destination_node_ids", [])
     if str(node_id) in map_node_lookup.index
 ))
+destination_pin_colors = ["#7c3aed", "#f97316", "#06b6d4", "#e11d48", "#16a34a", "#eab308"]
 destination_capacity_remaining = {
     node_id: int(st.session_state.get(f"receiving_capacity_{node_id}", 0))
     for node_id in destination_node_ids
@@ -772,6 +1016,7 @@ for origin in zone_summary.loc[zone_summary["people"] > 0].to_dict("records"):
     destination_path_options[str(origin["zone_id"])] = options
 
 route_assignments = []
+group_route_assignments = []
 unassigned_by_origin = {}
 route_summary = {}
 origin_assignment_totals = {}
@@ -828,6 +1073,14 @@ for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict
     destination_capacity_remaining[destination_node_id] -= group_size
     origin_assignment_totals[zone_id] += group_size
     origin_assignment_by_pin[zone_id][destination_node_id] = origin_assignment_by_pin[zone_id].get(destination_node_id, 0) + group_size
+    group_route_assignments.append({
+        "group_id": str(group["group_id"]),
+        "origin": str(group["zone"]),
+        "group_size": group_size,
+        "departure_min": float(group["departure_min"]) + float(departure_delay),
+        "destination_node_id": destination_node_id,
+        "nodes": path_nodes,
+    })
     assignment_key = (zone_id, destination_node_id)
     route_summary.setdefault(assignment_key, {
         "zone_id": zone_id,
@@ -887,6 +1140,10 @@ for zone_id, counts in unassigned_by_origin.items():
         "People not assigned": counts["network"] + counts["capacity"] + counts["allocation"] + counts["invalid"],
         "Groups not assigned": counts["groups"],
         "Reason": "; ".join(reason_parts),
+        "No connected pin": counts["network"],
+        "Pin capacity reached": counts["capacity"],
+        "Share target reached": counts["allocation"],
+        "Invalid shares": counts["invalid"],
         "Origin component": origin_component if origin_component is not None else "Missing",
         "Component nodes": route_component_size.get(origin_node_id, 0),
         "Closest unconnected node gap (m)": round(gap["gap_m"], 1) if gap else None,
@@ -900,9 +1157,47 @@ destination_capacity_summary = [
         "Capacity entered": int(st.session_state.get(f"receiving_capacity_{node_id}", 0)),
         "People assigned": int(st.session_state.get(f"receiving_capacity_{node_id}", 0)) - destination_capacity_remaining[node_id],
         "Capacity remaining": destination_capacity_remaining[node_id],
+        "Capacity used (%)": round(
+            (int(st.session_state.get(f"receiving_capacity_{node_id}", 0)) - destination_capacity_remaining[node_id])
+            / max(int(st.session_state.get(f"receiving_capacity_{node_id}", 0)), 1) * 100,
+            1,
+        ),
     }
     for index, node_id in enumerate(destination_node_ids)
 ]
+
+pin_pair_routes = []
+for left_index, left_node_id in enumerate(destination_node_ids):
+    for right_index in range(left_index + 1, len(destination_node_ids)):
+        right_node_id = destination_node_ids[right_index]
+        connected = (
+            left_node_id in routing_graph
+            and right_node_id in routing_graph
+            and nx.has_path(routing_graph, left_node_id, right_node_id)
+        )
+        if connected:
+            pair_nodes = nx.shortest_path(
+                routing_graph, left_node_id, right_node_id, weight="free_flow_min"
+            )
+            pair_length_m = sum(
+                float(routing_graph[a][b].get("length_m", 0.0))
+                for a, b in zip(pair_nodes, pair_nodes[1:])
+            )
+            pair_time_min = sum(
+                float(routing_graph[a][b].get("free_flow_min", 0.0))
+                for a, b in zip(pair_nodes, pair_nodes[1:])
+            )
+        else:
+            pair_nodes = []
+            pair_length_m = None
+            pair_time_min = None
+        pin_pair_routes.append({
+            "Pin pair": f"Pin {left_index + 1} ↔ Pin {right_index + 1}",
+            "Filtered graph connection": "Connected" if connected else "Not connected",
+            "Road path (km)": round(pair_length_m / 1000, 2) if pair_length_m is not None else None,
+            "Modeled walk time (min)": round(pair_time_min, 1) if pair_time_min is not None else None,
+            "nodes": pair_nodes,
+        })
 
 # Make origin-to-pin reachability visible before users interpret allocation
 # totals. A high pin share can remain unassigned when its road node is in a
@@ -928,7 +1223,7 @@ for origin in zone_summary.loc[zone_summary["people"] > 0].to_dict("records"):
             "Origin component": origin_component if origin_component is not None else "Missing",
             "Pin component": destination_component if destination_component is not None else "Missing",
             "Shortest path (km)": round(path[1] / 1000, 2) if path else None,
-            "Free-flow path (min)": round(path[0], 1) if path else None,
+            "Modeled walk time (min)": round(path[0], 1) if path else None,
             "Closest graph-node gap (m)": None,
             "Closest origin-side node ID": None,
             "Closest origin-side node": None,
@@ -971,75 +1266,77 @@ departure_counts = departure_counts.set_index("departure_minute").reindex(
     range(departure_window_min + 1), fill_value=0
 ).rename_axis("departure_minute").reset_index()
 
+simulation_setup_issues = []
+active_scenario_origins = [
+    str(zone_id) for zone_id in selected_origin_ids
+    if int(origin_people_caps.get(zone_id, 0)) > 0
+]
+if not active_scenario_origins:
+    simulation_setup_issues.append("set a positive evacuee amount for at least one origin")
+if not any(destination_capacity_remaining.get(node_id, 0) > 0 for node_id in destination_node_ids):
+    simulation_setup_issues.append("add a receiving pin with positive scenario capacity")
+active_share_totals = [
+    sum(int(value) for value in origin_pin_shares.get(zone_id, {}).values())
+    for zone_id in active_scenario_origins
+]
+if not active_share_totals or not any(total > 0 for total in active_share_totals):
+    simulation_setup_issues.append("assign a positive origin share to at least one pin")
+if any(total > 100 for total in active_share_totals):
+    simulation_setup_issues.append("keep each origin's configured pin shares at or below 100%")
+if not route_assignments:
+    simulation_setup_issues.append("ensure at least one group has a connected route to a pin")
+
 details_open = st.session_state.get("explore_details_open", True)
 map_col, details_col = st.columns([4.1, 1.25] if details_open else [14, 0.8], gap="small")
 with map_col:
     with st.container(height=760, key="map_stage"):
         st.markdown("### Tsunami Evacuation Scenario Explorer")
-        st.caption("Research prototype · map-selected route is a screening estimate on an unreviewed OSM graph; tsunami depths are static. Not for emergency guidance.")
-        search_cols = st.columns([2.1, 3.9])
-        map_search_query = search_cols[0].text_input(
-            "Find a building, road, or street",
-            key="map_search_query",
-            placeholder="Type at least 2 characters",
-            on_change=clear_map_search_selection,
-        )
+        st.session_state.setdefault("map_search_query", "")
+        st.session_state.setdefault("map_search_selected", None)
+        st.session_state.setdefault("map_extent", "Gubat")
+        st.session_state.setdefault("show_roads", True)
+        st.session_state.setdefault("show_hazard_v2", False)
+        st.session_state.setdefault("show_boundaries_v2", False)
+        st.session_state.setdefault("show_origins_v2", False)
+        st.session_state.setdefault("map_point_type", "Receiving pin")
+        st.session_state.setdefault("pick_destination_on_map", False)
+        map_search_query = str(st.session_state.get("map_search_query", ""))
         search_matches = [
             item for item in map_search_catalog
             if len(map_search_query.strip()) >= 2
             and map_search_query.strip().casefold() in item["search_text"].casefold()
         ][:100]
         search_labels = [item["label"] for item in search_matches]
-        search_selection = search_cols[1].selectbox(
-            "Search results",
-            options=search_labels,
-            index=None,
-            placeholder="Choose a matching map feature",
-            key="map_search_selected",
-            disabled=not search_matches,
-            on_change=apply_map_search_selection,
-            help="First type at least two characters in the search box on the left. Then open this menu and choose a match. Search covers named OpenStreetMap features packaged with this project; unnamed buildings and roads are not searchable.",
-        )
-        if len(map_search_query.strip()) >= 2 and not search_matches:
-            search_cols[1].caption("No named map features match that text in the included data.")
+        search_selection = st.session_state.get("map_search_selected")
+        if search_selection not in search_labels:
+            search_selection = None
+            st.session_state["map_search_selected"] = None
         selected_map_search = next(
             (item for item in map_search_catalog if item["label"] == search_selection), None
         )
-        control_cols = st.columns([3.5, 1.05, 1.2, 1.0, 1.45])
-        map_extent = control_cols[0].radio("Map extent", ["Gubat", "Daet", "Daet–Basud"], horizontal=True, key="map_extent")
-        show_roads = control_cols[1].checkbox("OSM roads", value=True, key="show_roads")
-        show_hazard = control_cols[2].checkbox("Depth zones", value=False, key="show_hazard_v2")
-        show_boundaries = control_cols[3].checkbox("Boundaries", value=False, key="show_boundaries_v2")
-        show_synthetic_zones = control_cols[4].checkbox("Named origins", value=False, key="show_origins_v2")
-        route_control_cols = st.columns([2.2, 2.0, 1.6, 1.4, 3.5])
-        map_selection_mode = route_control_cols[0].selectbox("Map point type", ["Receiving pin", "Origin area"], key="map_point_type")
-        pick_destination_on_map = route_control_cols[1].toggle(
-            "Pick a road point",
-            value=False,
-            key="pick_destination_on_map",
-            help="Click a teal mapped road node. Add it as a receiving pin, or use it to define an aggregate origin area.",
+        map_extent = st.session_state["map_extent"]
+        show_roads = bool(st.session_state["show_roads"])
+        show_hazard = bool(st.session_state["show_hazard_v2"])
+        hazard_display_mode = st.session_state.get(
+            "hazard_display_mode", "Static mapped depth zones"
         )
+        illustrative_depth_reveal = hazard_display_mode == "Illustrative depth-class reveal"
+        st.session_state.setdefault("evacuation_movement_enabled_v2", True)
+        animate_evacuation_groups = bool(
+            st.session_state.get("evacuation_movement_enabled_v2", True)
+            and group_route_assignments
+        )
+        render_illustrative_reveal = illustrative_depth_reveal and not animate_evacuation_groups
+        show_boundaries = bool(st.session_state["show_boundaries_v2"])
+        show_synthetic_zones = bool(st.session_state["show_origins_v2"])
+        map_selection_mode = st.session_state["map_point_type"]
+        pick_destination_on_map = bool(st.session_state["pick_destination_on_map"])
         staged_destination = st.session_state.get("candidate_destination_node_id")
-        if route_control_cols[2].button("Add selected pin", key="add_candidate_destination", disabled=not staged_destination or map_selection_mode != "Receiving pin"):
-            pins = list(st.session_state.get("candidate_destination_node_ids", []))
-            if staged_destination not in pins:
-                pins.append(staged_destination)
-            st.session_state["candidate_destination_node_ids"] = pins
-            st.rerun()
-        if route_control_cols[3].button("Clear pins", key="clear_candidate_destinations"):
-            st.session_state["candidate_destination_node_ids"] = []
-            st.session_state.pop("candidate_destination_node_id", None)
-            st.rerun()
-        route_control_cols[4].caption("Pins and origin anchors are scenario inputs—not verified safe or available sites.")
         selected_destination_node_id = st.session_state.get("candidate_destination_node_id")
-        if pick_destination_on_map:
-            if map_selection_mode == "Receiving pin":
-                st.info("Click a teal road-node dot, then choose **Add selected pin**. Repeat to add more than one candidate receiving point.")
-            else:
-                st.info("Click a teal road-node dot for the aggregate origin's representative access point. Then name it in the left sidebar under **Add a named origin area**.")
 
         try:
             fig = go.Figure()
+            hazard_traces_by_depth = {}
             if show_hazard:
                 depth_colors = {
                     "< 1 meter": ("#d6b76c", "#8f7842"),
@@ -1052,7 +1349,12 @@ with map_col:
                 for feature in map_data["hazard"]:
                     depth = feature["properties"].get("Inun_depth", "Depth not classified")
                     fill, outline = depth_colors.get(depth, ("#7c3aed", "#4c1d95"))
-                    add_polygon_layer(fig, [feature], fill, outline, f"Inundation · {depth}", True, 0.45)
+                    hazard_traces_by_depth.setdefault(depth, []).extend(
+                        add_polygon_layer(
+                            fig, [feature], fill, outline, f"Mapped depth · {depth}",
+                            True, 0.45, visible=not render_illustrative_reveal,
+                        )
+                    )
             if show_roads:
                 add_road_layer(fig, map_data["road_edges"], map_data["road_nodes"], road_bbox_for_extent(map_extent))
             if show_boundaries:
@@ -1064,16 +1366,43 @@ with map_col:
                         add_boundary_layer(fig, map_data["regional_boundary"], "#0f172a", "Daet–Basud extent")
                     else:
                         add_boundary_layer(fig, map_data["gubat_boundary"], "#111827", "Gubat boundary")
-            route_colors = ["#7c3aed", "#e11d48", "#0891b2", "#ca8a04", "#2563eb"]
-            for route_index, assignment in enumerate(route_assignments):
+            routed_pin_indices = set()
+            for assignment in route_assignments:
                 route_node_coordinates = [map_node_lookup.loc[node_id] for node_id in assignment["nodes"]]
+                pin_index = destination_node_ids.index(assignment["destination_node_id"]) + 1
+                routed_pin_indices.add(pin_index)
+                pin_color = destination_pin_colors[(pin_index - 1) % len(destination_pin_colors)]
                 fig.add_trace(go.Scattermapbox(
                     lon=[float(row["lon"]) for row in route_node_coordinates],
                     lat=[float(row["lat"]) for row in route_node_coordinates],
                     mode="lines",
-                    line={"color": route_colors[route_index % len(route_colors)], "width": 5},
-                    name=f"Candidate route · {assignment['origin']}",
+                    line={"color": pin_color, "width": 5},
+                    name=f"Candidate route · {assignment['origin']} → Pin {pin_index}",
                     hoverinfo="skip",
+                ))
+            for pair in pin_pair_routes:
+                if not pair["nodes"]:
+                    continue
+                pair_coordinates = [map_node_lookup.loc[node_id] for node_id in pair["nodes"]]
+                pair_lon = [float(row["lon"]) for row in pair_coordinates]
+                pair_lat = [float(row["lat"]) for row in pair_coordinates]
+                # Layer a white casing under the teal road path so the pin link
+                # stays visible over roads, route lines, and depth polygons.
+                fig.add_trace(go.Scattermapbox(
+                    lon=pair_lon, lat=pair_lat, mode="lines",
+                    line={"color": "#ffffff", "width": 12},
+                    name=f"Pin connection outline · {pair['Pin pair']}",
+                    hoverinfo="skip",
+                ))
+                fig.add_trace(go.Scattermapbox(
+                    lon=pair_lon, lat=pair_lat, mode="lines",
+                    line={"color": "#00a6a6", "width": 7},
+                    name=f"Connected road path · {pair['Pin pair']}",
+                    hovertemplate=(
+                        f"{pair['Pin pair']} · connected in filtered road graph<br>"
+                        f"{pair['Road path (km)']} km · {pair['Modeled walk time (min)']} min"
+                        "<extra></extra>"
+                    ),
                 ))
             if pick_destination_on_map:
                 min_lon, min_lat, max_lon, max_lat = road_bbox_for_extent(map_extent)
@@ -1108,14 +1437,28 @@ with map_col:
                 fig.add_trace(go.Scattermapbox(
                     lon=[float(row["lon"]) for row in committed_destination_rows],
                     lat=[float(row["lat"]) for row in committed_destination_rows],
-                    mode="markers+text",
-                    text=[f"Candidate {index + 1}" for index in range(len(committed_destination_rows))],
-                    textposition="top center",
-                    marker={"size": 16, "color": "#dc2626", "symbol": "circle"},
-                    name="Selected candidate destination pins",
-                    customdata=[[node_id] for node_id in destination_node_ids],
-                    hovertemplate="Candidate map point<br>Road node: %{customdata[0]}<br>Not a verified safe site<extra></extra>",
+                    mode="markers",
+                    marker={"size": 28, "color": "#ffffff", "opacity": 0.98, "symbol": "circle"},
+                    name="Receiving pin highlight",
+                    hoverinfo="skip",
                 ))
+                for pin_index, node_id in enumerate(destination_node_ids, start=1):
+                    pin_row = map_node_lookup.loc[node_id]
+                    pin_color = destination_pin_colors[(pin_index - 1) % len(destination_pin_colors)]
+                    fig.add_trace(go.Scattermapbox(
+                        lon=[float(pin_row["lon"])],
+                        lat=[float(pin_row["lat"])],
+                        mode="markers+text",
+                        text=[f"Pin {pin_index}"],
+                        textposition="top center",
+                        marker={"size": 20, "color": pin_color, "symbol": "circle"},
+                        name=f"Candidate receiving pin {pin_index}",
+                        customdata=[[node_id]],
+                        hovertemplate=(
+                            f"Pin {pin_index}<br>Road node: %{{customdata[0]}}<br>"
+                            "Not a verified safe site<extra></extra>"
+                        ),
+                    ))
             pending_origin_node_id = st.session_state.get("pending_origin_node_id")
             if pending_origin_node_id in map_node_lookup.index:
                 pending_origin = map_node_lookup.loc[pending_origin_node_id]
@@ -1186,6 +1529,19 @@ with map_col:
                 clickmode="event+select",
                 uirevision=f"scenario-map-{map_extent}-{selected_map_search['label'] if selected_map_search else 'default'}",
             )
+            if show_hazard and render_illustrative_reveal:
+                add_illustrative_depth_reveal(fig, hazard_traces_by_depth)
+            animated_group_count = 0
+            if animate_evacuation_groups:
+                animated_group_count = add_evacuation_movement_animation(
+                    fig, group_route_assignments, map_node_lookup, routing_graph,
+                    destination_node_ids, 1.15 * float(speed_scale),
+                )
+            if show_hazard and render_illustrative_reveal:
+                st.info(
+                    "**Illustrative depth-class reveal — not tsunami arrival time.** "
+                    "The playback reveals the supplied static depth classes in an assumed order; it does not show water moving inland."
+                )
             st.plotly_chart(
                 fig,
                 use_container_width=True,
@@ -1197,7 +1553,8 @@ with map_col:
             legend_items = []
             if show_hazard:
                 for label, (fill, _) in depth_colors.items():
-                    legend_items.append(f'<span class="map-legend-item"><i class="map-legend-swatch" style="background:{fill}"></i>Inundation · {label}</span>')
+                    legend_prefix = "Mapped depth · " if render_illustrative_reveal else "Inundation · "
+                    legend_items.append(f'<span class="map-legend-item"><i class="map-legend-swatch" style="background:{fill}"></i>{legend_prefix}{label}</span>')
             if show_roads:
                 road_legend = [("#64748b", "service"), ("#f97316", "secondary"), ("#64748b", "residential"),
                                ("#94a3b8", "unclassified"), ("#f59e0b", "tertiary"), ("#14b8a6", "footway"), ("#65a30d", "track")]
@@ -1205,12 +1562,22 @@ with map_col:
             if show_boundaries:
                 legend_items.append('<span class="map-legend-item"><i class="map-legend-line" style="border-color:#111827;border-top-width:3px"></i>Boundary</span>')
             if route_assignments:
-                legend_items.append('<span class="map-legend-item"><i class="map-legend-line" style="border-color:#7c3aed;border-top-width:4px"></i>Candidate origin-to-pin routes · unverified</span>')
+                for pin_index in sorted(routed_pin_indices):
+                    pin_color = destination_pin_colors[(pin_index - 1) % len(destination_pin_colors)]
+                    legend_items.append(
+                        f'<span class="map-legend-item"><i class="map-legend-line" style="border-color:{pin_color};border-top-width:4px"></i>Routes to pin {pin_index} · unverified</span>'
+                    )
+            if any(pair["nodes"] for pair in pin_pair_routes):
+                legend_items.append('<span class="map-legend-item"><i class="map-legend-line" style="border-color:#00a6a6;border-top-width:5px"></i>Connected road path between pins · graph screen</span>')
             if pick_destination_on_map:
                 selectable_label = "Selectable origin road node" if map_selection_mode == "Origin area" else "Selectable receiving-point node"
                 legend_items.append(f'<span class="map-legend-item"><i class="map-legend-dot" style="background:#0f766e"></i>{selectable_label}</span>')
             if destination_node_ids:
-                legend_items.append('<span class="map-legend-item"><i class="map-legend-dot" style="background:#dc2626"></i>Candidate receiving-point pins</span>')
+                for pin_index, _ in enumerate(destination_node_ids, start=1):
+                    pin_color = destination_pin_colors[(pin_index - 1) % len(destination_pin_colors)]
+                    legend_items.append(
+                        f'<span class="map-legend-item"><i class="map-legend-dot" style="background:{pin_color}"></i>Receiving pin {pin_index}</span>'
+                    )
             if st.session_state.get("pending_origin_node_id"):
                 legend_items.append('<span class="map-legend-item"><i class="map-legend-dot" style="background:#9333ea"></i>Staged origin anchor</span>')
             if show_synthetic_zones:
@@ -1219,14 +1586,156 @@ with map_col:
                     '<span class="map-legend-item"><i class="map-legend-dot" style="background:#f59e0b"></i>Named-area origin anchor</span>',
                     '<span class="map-legend-item"><i class="map-legend-dot" style="background:#2563eb"></i>Candidate road node · size shows group total</span>',
                 ])
+            if animate_evacuation_groups and animated_group_count:
+                legend_items.append(
+                    '<span class="map-legend-item"><i class="map-legend-dot" style="background:linear-gradient(90deg,#7c3aed,#f97316,#06b6d4,#e11d48)"></i>Moving synthetic group · color identifies receiving pin</span>'
+                )
             st.markdown('<div class="map-legend">' + ''.join(legend_items) + '</div>', unsafe_allow_html=True)
+            st.toggle(
+                "Animate assigned evacuation groups",
+                key="evacuation_movement_enabled_v2",
+                disabled=not bool(group_route_assignments),
+                help="Plays anonymous synthetic groups along their assigned shortest free-flow road-graph paths. This is separate from tsunami playback.",
+            )
+            if not group_route_assignments:
+                st.caption("Add connected receiving pins, positive pin limits, and origin-to-pin shares to create assigned groups for playback.")
+            elif animate_evacuation_groups:
+                st.caption(
+                    f"Evacuation movement preview · {animated_group_count:,} of {len(synthetic_groups):,} generated groups have assigned paths. "
+                    "Dots start at representative origin road nodes; size represents group size and color matches the receiving pin. "
+                    "Playback time is an assumed free-flow estimate. It does not model actual household locations, congestion, individual movement, road safety, or tsunami arrival. Unassigned groups do not move."
+                )
+            if animate_evacuation_groups and illustrative_depth_reveal:
+                st.info("Evacuation movement is using the map animation controls; mapped depth classes remain static. Turn off evacuation movement to use the illustrative depth-class reveal.")
             shared_component_zones = max(len(zone_summary) - zone_summary["shares_candidate_component_with"].eq("No other included origin candidate").sum(), 0)
             st.caption(
                 f"OSM © OpenStreetMap contributors · pan/zoom enabled · raw graph screen: {shared_component_zones}/{len(zone_summary)} "
-                f"origin candidates share a geometry component. A plotted shortest-time route is based on unreviewed graph geometry and is not a safe-route recommendation."
+                f"origin candidates share a geometry component. A plotted shortest-distance path uses a uniform assumed walking speed and unreviewed graph geometry; it is not a safe-route recommendation."
             )
         except Exception as exc:
             st.error(f"Could not load the geographic map layers: {exc}")
+
+        with st.container(border=True):
+            st.caption("Research prototype · map-selected routes are screening estimates on an unreviewed OSM graph; tsunami depths are static. Not for emergency guidance.")
+            search_cols = st.columns([2.1, 3.9])
+            search_cols[0].text_input(
+                "Find a building, road, or street",
+                key="map_search_query",
+                placeholder="Type at least 2 characters",
+                on_change=clear_map_search_selection,
+            )
+            search_cols[1].selectbox(
+                "Search results",
+                options=search_labels,
+                index=None,
+                placeholder="Choose a matching map feature",
+                key="map_search_selected",
+                disabled=not search_matches,
+                on_change=apply_map_search_selection,
+                help="Type at least two characters, then choose a matching named OpenStreetMap feature. Unnamed buildings and roads are not searchable.",
+            )
+            if len(map_search_query.strip()) >= 2 and not search_matches:
+                search_cols[1].caption("No named map features match that text in the included data.")
+            control_cols = st.columns([3.5, 1.05, 1.2, 1.0, 1.45])
+            control_cols[0].radio("Map extent", ["Gubat", "Daet", "Daet–Basud"], horizontal=True, key="map_extent")
+            control_cols[1].checkbox("OSM roads", key="show_roads")
+            control_cols[2].checkbox("Depth zones", key="show_hazard_v2")
+            control_cols[3].checkbox("Boundaries", key="show_boundaries_v2")
+            control_cols[4].checkbox("Named origins", key="show_origins_v2")
+            route_control_cols = st.columns([2.2, 2.0, 1.6, 1.4, 3.5])
+            route_control_cols[0].selectbox("Map point type", ["Receiving pin", "Origin area"], key="map_point_type")
+            route_control_cols[1].toggle(
+                "Pick a road point",
+                key="pick_destination_on_map",
+                help="Click a teal mapped road node. Add it as a receiving pin, or use it to define an aggregate origin area.",
+            )
+            if route_control_cols[2].button(
+                "Add selected pin", key="add_candidate_destination",
+                disabled=not staged_destination or map_selection_mode != "Receiving pin",
+            ):
+                pins = list(st.session_state.get("candidate_destination_node_ids", []))
+                if staged_destination not in pins:
+                    pins.append(staged_destination)
+                st.session_state["candidate_destination_node_ids"] = pins
+                st.rerun()
+            if route_control_cols[3].button("Clear pins", key="clear_candidate_destinations"):
+                st.session_state["candidate_destination_node_ids"] = []
+                st.session_state.pop("candidate_destination_node_id", None)
+                st.rerun()
+            route_control_cols[4].caption("Pins and origin anchors are scenario inputs—not verified safe or available sites.")
+            if pick_destination_on_map:
+                if map_selection_mode == "Receiving pin":
+                    st.info("Click a teal road-node dot, then choose **Add selected pin**. Repeat to add more than one candidate receiving point.")
+                else:
+                    st.info("Click a teal road-node dot for the aggregate origin's representative access point. Then name it in the left sidebar under **Add a named origin area**.")
+
+        with st.container(border=True):
+            st.markdown("### Tsunami map preview")
+            st.selectbox(
+                "Hazard display",
+                ["Static mapped depth zones", "Illustrative depth-class reveal"],
+                key="hazard_display_mode",
+                disabled=animate_evacuation_groups,
+                help="The illustrative option reveals the existing maximum-depth classes in sequence. Its steps are not tsunami arrival times.",
+            )
+            if animate_evacuation_groups:
+                st.info("The evacuation group timeline is active in the map. Hazard classes stay static during this separate playback.")
+            elif illustrative_depth_reveal:
+                if show_hazard:
+                    st.warning(
+                        "Illustrative map reveal only: the six mapped maximum-depth classes appear cumulatively from lower to higher classes. "
+                        "The order and playback speed are visual assumptions, not modeled water arrival, wave motion, or evacuation timing. "
+                        "Use the Play/Pause/Restart buttons and step slider below the map."
+                    )
+                else:
+                    st.info("Turn on **Depth zones** above the map to display the illustrative reveal.")
+
+        with st.container(border=True):
+            st.markdown("### Time-dependent tsunami simulation")
+            sim_controls = st.columns([2.3, 1.0, 1.0, 1.0, 1.25])
+            scenario_by_id = {item["scenario_id"]: item for item in tsunami_scenarios}
+            if tsunami_scenarios:
+                selected_tsunami_scenario_id = sim_controls[0].selectbox(
+                    "Tsunami scenario / intensity",
+                    options=list(scenario_by_id),
+                    format_func=lambda scenario_id: scenario_by_id[scenario_id]["scenario_name"],
+                    key="selected_tsunami_scenario_id",
+                    help="Each choice is a documented model scenario, not a free-form intensity estimate.",
+                )
+            else:
+                selected_tsunami_scenario_id = None
+                sim_controls[0].selectbox(
+                    "Tsunami scenario / intensity",
+                    ["No validated time-dependent scenario"],
+                    disabled=True,
+                    help="Intensity must come from a documented, sourced tsunami scenario; it cannot be inferred from the static maximum-inundation polygons.",
+                )
+            simulation_can_start = bool(
+                tsunami_time_series_available
+                and tsunami_playback_engine_available
+                and not simulation_setup_issues
+                and selected_tsunami_scenario_id
+            )
+            sim_controls[1].button(
+                "▶ Start simulation", key="start_tsunami_simulation", disabled=not simulation_can_start,
+                help="Playback unlocks after a reviewed time-dependent scenario and the simulation engine are available.",
+                use_container_width=True,
+            )
+            sim_controls[2].button("Ⅱ Pause", key="pause_tsunami_simulation", disabled=True, use_container_width=True)
+            sim_controls[3].button("↺ Restart", key="restart_tsunami_simulation", disabled=True, use_container_width=True)
+            sim_controls[4].metric("Simulation time", "00:00:00")
+            st.progress(0, text="Simulation timeline · inactive")
+            if not tsunami_time_series_available:
+                st.caption(
+                    "🔒 The project has a static maximum-depth map and an illustrative visual reveal, but no validated time-dependent scenario. "
+                    + (tsunami_scenario_issues[0] if tsunami_scenario_issues else "Add sourced model frames before animating water.")
+                )
+            elif not tsunami_playback_engine_available:
+                st.caption("Scenario frames pass intake validation, but the playback engine is the next implementation step.")
+            if simulation_setup_issues:
+                st.caption("Scenario setup still needs: " + "; ".join(simulation_setup_issues) + ".")
+            elif tsunami_scenarios:
+                st.caption("Evacuation inputs pass the current setup checks.")
 
 with details_col:
     if details_open:
@@ -1301,11 +1810,37 @@ with details_col:
                             help="Scenario capacity only. Confirm the site's permission, usable space, access, and capacity locally before treating it as a real receiving area.",
                         )
                     st.markdown("**Capacity used in this scenario**")
-                    st.dataframe(pd.DataFrame(destination_capacity_summary), use_container_width=True, hide_index=True)
+                    st.dataframe(
+                        pd.DataFrame(destination_capacity_summary)[[
+                            "Candidate pin", "Capacity entered", "People assigned",
+                            "Capacity remaining", "Capacity used (%)",
+                        ]],
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    if pin_pair_routes:
+                        st.markdown("**Pin-to-pin road connection**")
+                        st.dataframe(
+                            pd.DataFrame(pin_pair_routes)[[
+                                "Pin pair", "Filtered graph connection", "Road path (km)", "Modeled walk time (min)"
+                            ]],
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                        if any(pair["nodes"] for pair in pin_pair_routes):
+                            st.caption(
+                                "The teal line follows the shortest-distance path in the filtered OSM graph. "
+                                "All links use one uniform assumed walking speed, so the speed control changes the time estimate, not the chosen path. "
+                                "Missing access tags are treated as candidate links. Connectivity is not a reviewed or safe route."
+                            )
+                        else:
+                            st.warning("No selected pins are connected in the current filtered road graph, so no connecting line is drawn.")
                     if origin_pin_connectivity_rows:
                         st.markdown("**Origin-to-pin connectivity and planned shares**")
                         st.dataframe(
-                            pd.DataFrame(origin_pin_connectivity_rows),
+                            pd.DataFrame(origin_pin_connectivity_rows)[[
+                                "Origin area", "Candidate pin", "Planned share (%)", "Connectivity",
+                            ]],
                             use_container_width=True,
                             hide_index=True,
                         )
@@ -1353,8 +1888,15 @@ with details_col:
                         else:
                             st.info("No sampled overlap with the available static inundation polygons was found on these paths.")
                     if unrouted_origins:
-                        st.warning("Some synthetic groups remain unassigned because no selected pin is connected or the connected pins have reached their entered capacities.")
-                        st.dataframe(pd.DataFrame(unrouted_origins), use_container_width=True, hide_index=True)
+                        st.warning("Some synthetic groups remain unassigned. The breakdown below separates graph disconnection, pin capacity, planned-share limits, and invalid shares.")
+                        st.dataframe(
+                            pd.DataFrame(unrouted_origins)[[
+                                "Origin area", "People not assigned", "No connected pin",
+                                "Pin capacity reached", "Share target reached", "Invalid shares",
+                            ]],
+                            use_container_width=True,
+                            hide_index=True,
+                        )
                         st.caption("Component IDs, node counts, and closest node gaps describe the exported graph only. They are review leads and do not identify a safe shortcut or justify drawing a connector.")
                     if selected_destination_node_id and selected_destination_node_id not in destination_node_ids:
                         st.caption("A road node is staged on the map but has not been added to the receiving-points list yet.")
@@ -1402,6 +1944,22 @@ with details_col:
             with detail_tabs[4]:
                 st.markdown("### Data sources")
                 st.dataframe(inputs["data_sources"], use_container_width=True, hide_index=True)
+                st.markdown("### Tsunami hazard layer used by the map")
+                st.write(
+                    "The map uses `data/gubat_tsunami_clip_fixed.gpkg`, a six-feature clip of "
+                    "`tsunamishp/tsunami.shp` to the project's traced Gubat boundary. Its coordinate "
+                    "reference system is WGS 84 (EPSG:4326), and its six `Inun_depth` classes range "
+                    "from < 1 meter through 5 to 6 meters. The client describes these as inundation "
+                    "depths from ground surface to the top of accumulated water."
+                )
+                st.warning(
+                    "The source shapefile's issuing organization, product date/version, original full "
+                    "coverage, and reuse terms are not recorded in the bundled GIS metadata. The displayed "
+                    "extent is only the clip inside the traced Gubat boundary (approximately 122.963108–"
+                    "122.986481° E, 14.108981–14.127014° N). This static layer contains no arrival times "
+                    "or time frames. The reveal is illustrative only; Start simulation remains unavailable "
+                    "until sourced, reviewed time-dependent model data and a playback engine are present."
+                )
                 st.markdown("### Interpretation limits")
                 st.write(
                     "Completion estimates are screening indicators, not predictions. The planning window is a scenario setting, "

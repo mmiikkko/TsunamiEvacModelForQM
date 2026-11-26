@@ -1,0 +1,2 @@
+scenario_id,scenario_name,source_organization,source_title,source_reference,source_version_date,scenario_parameters,time_zero_description,first_time_seconds,last_time_seconds,time_step_seconds,depth_units,horizontal_crs,vertical_datum,spatial_resolution_m,frame_geopackage,frame_layer,time_field,depth_field,depth_class_field,validation_reference,uncertainty_limitations,reuse_terms,technical_review_status,reviewer_role,review_date
+,,,,,,,,,,,,,,,,,,,,,,,,,,

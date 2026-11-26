@@ -124,6 +124,12 @@ def main() -> None:
                     "layer": _tag(feature, "layer"),
                     "lanes": _tag(feature, "lanes"),
                     "sidewalk": _tag(feature, "sidewalk"),
+                    "sidewalk_left": _tag(feature, "sidewalk:left"),
+                    "footway": _tag(feature, "footway"),
+                    "surface": _tag(feature, "surface"),
+                    "smoothness": _tag(feature, "smoothness"),
+                    "width": _tag(feature, "width"),
+                    "maxspeed": _tag(feature, "maxspeed"),
                     "construction": _tag(feature, "construction"),
                     "segment_index": segment_index,
                     "length_m": round(distance, 2),
@@ -143,7 +149,8 @@ def main() -> None:
     edge_fields = (
         "edge_id", "from_node", "to_node", "osm_fid", "osm_id", "osm_type",
         "name", "highway", "foot", "access", "vehicle_oneway", "bridge", "bridge_name",
-        "layer", "lanes", "sidewalk", "construction", "segment_index", "length_m",
+        "layer", "lanes", "sidewalk", "sidewalk_left", "footway", "surface",
+        "smoothness", "width", "maxspeed", "construction", "segment_index", "length_m",
     )
     for path, fields, records in ((NODES_OUT, node_fields, nodes.values()), (EDGES_OUT, edge_fields, edges)):
         with path.open("w", encoding="utf-8", newline="") as stream:
