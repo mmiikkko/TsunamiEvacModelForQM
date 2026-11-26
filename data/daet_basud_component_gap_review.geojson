@@ -1,0 +1,3405 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 0.1,
+        "node_a_id": "N122.96100110_14.11182470",
+        "node_a_mapped_roads": "Diego Naing; Magallanes Ilaod Streef",
+        "node_a_osm_way_ids": "1413304195; 313225981",
+        "node_a_highway_classes": "residential; unclassified",
+        "node_b_id": "N122.96100092_14.11182374",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 1
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96100109999999,
+            14.111824699999996
+          ],
+          [
+            122.96100092491054,
+            14.111823739491465
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 0.2,
+        "node_a_id": "N122.96391740_14.11502520",
+        "node_a_mapped_roads": "Governor Panotes Avenue; Lakan Street",
+        "node_a_osm_way_ids": "241575715; 313029298",
+        "node_a_highway_classes": "residential; secondary",
+        "node_b_id": "N122.96391717_14.11502326",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 2
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9639174,
+            14.115025199999998
+          ],
+          [
+            122.96391716753855,
+            14.115023263794747
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C032",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 0.3,
+        "node_a_id": "N122.96391609_14.11501433",
+        "node_a_mapped_roads": "Lakan Street",
+        "node_a_osm_way_ids": "313029298",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 3
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96391609436411,
+            14.115014325168428
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1.2,
+        "node_a_id": "N122.96391740_14.11502520",
+        "node_a_mapped_roads": "Governor Panotes Avenue; Lakan Street",
+        "node_a_osm_way_ids": "241575715; 313029298",
+        "node_a_highway_classes": "residential; secondary",
+        "node_b_id": "N122.96391609_14.11501433",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 4
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9639174,
+            14.115025199999998
+          ],
+          [
+            122.96391609436411,
+            14.115014325168428
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C034",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1.8,
+        "node_a_id": "N122.96797384_14.07044620",
+        "node_a_mapped_roads": "Amoguis",
+        "node_a_osm_way_ids": "312926520",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96798039_14.07046137",
+        "node_b_mapped_roads": "Amoguis",
+        "node_b_osm_way_ids": "312926520",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 5
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96797384297145,
+            14.070446199809307
+          ],
+          [
+            122.96798039182363,
+            14.070461365910369
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C026",
+        "component_b_vertices": 2,
+        "gap_distance_m": 3.0,
+        "node_a_id": "N122.95487640_14.10830660",
+        "node_a_mapped_roads": "J. Lukban Extension",
+        "node_a_osm_way_ids": "258546675; 258547120",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.95487507_14.10833341",
+        "node_b_mapped_roads": "J. Lukban Extension",
+        "node_b_osm_way_ids": "258547120",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 6
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95487639999999,
+            14.108306599999995
+          ],
+          [
+            122.95487506890927,
+            14.10833340929211
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C018",
+        "component_a_vertices": 3,
+        "component_b": "C035",
+        "component_b_vertices": 2,
+        "gap_distance_m": 4.7,
+        "node_a_id": "N122.97077513_14.06904839",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "908367118",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.97081803_14.06904080",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "908367119",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 7
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.97077512907737,
+            14.06904838692434
+          ],
+          [
+            122.97081803310404,
+            14.069040801725867
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C025",
+        "component_b_vertices": 2,
+        "gap_distance_m": 5.0,
+        "node_a_id": "N122.95474630_14.11442920",
+        "node_a_mapped_roads": "Justo Lukban Street; Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679; 239843503; 242244084",
+        "node_a_highway_classes": "secondary; tertiary",
+        "node_b_id": "N122.95479200_14.11442092",
+        "node_b_mapped_roads": "Vicente Basit Street",
+        "node_b_osm_way_ids": "1293978679",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 8
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9547463,
+            14.114429199999998
+          ],
+          [
+            122.95479199636384,
+            14.11442092454835
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C011",
+        "component_b_vertices": 9,
+        "gap_distance_m": 5.1,
+        "node_a_id": "N123.03141740_14.06343470",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "882311788",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N123.03145230_14.06340350",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "1513946521",
+        "node_b_highway_classes": "unclassified",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 9
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            123.0314174,
+            14.0634347
+          ],
+          [
+            123.0314523,
+            14.0634035
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C020",
+        "component_b_vertices": 2,
+        "gap_distance_m": 5.7,
+        "node_a_id": "N122.91259570_14.08992220",
+        "node_a_mapped_roads": "Bibirao Road",
+        "node_a_osm_way_ids": "312885121; 313030458; 902959980",
+        "node_a_highway_classes": "tertiary; unclassified",
+        "node_b_id": "N122.91257065_14.08987741",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "313030458",
+        "node_b_highway_classes": "unclassified",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 10
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.91259570000001,
+            14.089922200000004
+          ],
+          [
+            122.91257065009944,
+            14.089877405072267
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 12.3,
+        "node_a_id": "N122.95817670_14.11091230",
+        "node_a_mapped_roads": "E. Ferrer Street; Taft Ilaod Street",
+        "node_a_osm_way_ids": "238085077; 238109661",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95817586_14.11080152",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 11
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95817670000001,
+            14.1109123
+          ],
+          [
+            122.95817586318995,
+            14.110801519224188
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 15.3,
+        "node_a_id": "N122.95706180_14.11474961",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569868",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.95703745_14.11461390",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 12
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9570618021141,
+            14.1147496105829
+          ],
+          [
+            122.9570374522103,
+            14.114613896449127
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C017",
+        "component_b_vertices": 3,
+        "gap_distance_m": 17.9,
+        "node_a_id": "N122.95164778_14.12228104",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "884123345",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.95162653_14.12212122",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "884123345",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 13
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95164777940191,
+            14.122281038748742
+          ],
+          [
+            122.95162653366344,
+            14.122121219481167
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C035",
+        "component_a_vertices": 2,
+        "component_b": "C036",
+        "component_b_vertices": 2,
+        "gap_distance_m": 22.3,
+        "node_a_id": "N122.97089800_14.06922540",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "908367119",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.97108330_14.06931350",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "312926547",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 14
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.970898,
+            14.069225399999997
+          ],
+          [
+            122.97108330000002,
+            14.069313499999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C024",
+        "component_b_vertices": 2,
+        "gap_distance_m": 24.8,
+        "node_a_id": "N122.95467400_14.11357690",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "239871062; 241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.95468974_14.11379881",
+        "node_b_mapped_roads": "Justo Lukban Street",
+        "node_b_osm_way_ids": "241268982",
+        "node_b_highway_classes": "secondary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 15
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.954674,
+            14.1135769
+          ],
+          [
+            122.95468973779018,
+            14.11379880748386
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 32.8,
+        "node_a_id": "N122.96059940_14.11194460",
+        "node_a_mapped_roads": "E. Fernandez Street; Magallanes Ilaod Streef",
+        "node_a_osm_way_ids": "1413304195; 416514459",
+        "node_a_highway_classes": "residential; unclassified",
+        "node_b_id": "N122.96053793_14.11165621",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 16
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9605994,
+            14.111944600000001
+          ],
+          [
+            122.96053792834716,
+            14.111656208825744
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C023",
+        "component_b_vertices": 2,
+        "gap_distance_m": 36.2,
+        "node_a_id": "N122.95227238_14.10595733",
+        "node_a_mapped_roads": "Vivencio",
+        "node_a_osm_way_ids": "573560004",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95226030_14.10563199",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "573560002",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 17
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95227237778039,
+            14.10595733023926
+          ],
+          [
+            122.9522603028708,
+            14.105631992288487
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C016",
+        "component_b_vertices": 3,
+        "gap_distance_m": 37.7,
+        "node_a_id": "N122.95054610_14.11275200",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "883737123",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95089059_14.11269683",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "313228230",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 18
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95054610000001,
+            14.112752000000004
+          ],
+          [
+            122.95089059323173,
+            14.112696827301182
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C018",
+        "component_a_vertices": 3,
+        "component_b": "C036",
+        "component_b_vertices": 2,
+        "gap_distance_m": 41.9,
+        "node_a_id": "N122.97077513_14.06904839",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "908367118",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.97115710_14.06898086",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "312926547",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 19
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.97077512907737,
+            14.06904838692434
+          ],
+          [
+            122.97115709781619,
+            14.068980856643606
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C022",
+        "component_b_vertices": 2,
+        "gap_distance_m": 47.0,
+        "node_a_id": "N122.94895567_14.12277909",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569802",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.94852802_14.12285821",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569804",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 20
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.94895566895862,
+            14.122779093882091
+          ],
+          [
+            122.9485280177521,
+            14.12285820871522
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C015",
+        "component_b_vertices": 3,
+        "gap_distance_m": 48.0,
+        "node_a_id": "N122.94355247_14.09003365",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "312928825",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.94399606_14.09001234",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "312928825",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 21
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.94355247243637,
+            14.090033647977073
+          ],
+          [
+            122.94399605978823,
+            14.090012344001618
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C030",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 52.6,
+        "node_a_id": "N122.96044615_14.11122563",
+        "node_a_mapped_roads": "E. Fernandez Street",
+        "node_a_osm_way_ids": "416514459",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96091518_14.11135335",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 22
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96044614815904,
+            14.11122562667918
+          ],
+          [
+            122.9609151775544,
+            14.111353345307265
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C004",
+        "component_b_vertices": 25,
+        "gap_distance_m": 53.3,
+        "node_a_id": "N123.01960766_14.02542759",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "866860720",
+        "node_a_highway_classes": "path",
+        "node_b_id": "N123.01945011_14.02497354",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "866860720",
+        "node_b_highway_classes": "path",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 23
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            123.01960766247947,
+            14.025427585445067
+          ],
+          [
+            123.01945010745904,
+            14.024973537055857
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C025",
+        "component_b_vertices": 2,
+        "gap_distance_m": 68.4,
+        "node_a_id": "N122.95469083_14.11381424",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.95479200_14.11442092",
+        "node_b_mapped_roads": "Vicente Basit Street",
+        "node_b_osm_way_ids": "1293978679",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 24
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95469083206746,
+            14.113814237116335
+          ],
+          [
+            122.95479199636384,
+            14.11442092454835
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C002",
+        "component_b_vertices": 370,
+        "gap_distance_m": 68.6,
+        "node_a_id": "N122.95352922_14.06105365",
+        "node_a_mapped_roads": "Maharlika Highway",
+        "node_a_osm_way_ids": "595947079",
+        "node_a_highway_classes": "trunk",
+        "node_b_id": "N122.95322867_14.06051121",
+        "node_b_mapped_roads": "Maharlika Highway",
+        "node_b_osm_way_ids": "595947079",
+        "node_b_highway_classes": "trunk",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 25
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95352922071365,
+            14.061053646805496
+          ],
+          [
+            122.95322866529978,
+            14.060511211094095
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C009",
+        "component_b_vertices": 12,
+        "gap_distance_m": 75.3,
+        "node_a_id": "N122.96971135_14.01767833",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "967412648",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.97011948_14.01712954",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "967412648",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 26
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96971135355204,
+            14.01767832925745
+          ],
+          [
+            122.9701194840781,
+            14.017129540406538
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C036",
+        "component_b_vertices": 2,
+        "gap_distance_m": 81.6,
+        "node_a_id": "N122.97087330_14.07001720",
+        "node_a_mapped_roads": "Mampili Road",
+        "node_a_osm_way_ids": "231221351",
+        "node_a_highway_classes": "unclassified",
+        "node_b_id": "N122.97108330_14.06931350",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "312926547",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 27
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9708733,
+            14.0700172
+          ],
+          [
+            122.97108330000002,
+            14.069313499999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C007",
+        "component_b_vertices": 16,
+        "gap_distance_m": 86.0,
+        "node_a_id": "N122.96994496_14.06647789",
+        "node_a_mapped_roads": "Mangcamagong Road",
+        "node_a_osm_way_ids": "231221069",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.97013706_14.06572779",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "1380123175",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 28
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96994496260562,
+            14.066477887939246
+          ],
+          [
+            122.9701370647539,
+            14.065727793573595
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C035",
+        "component_b_vertices": 2,
+        "gap_distance_m": 88.2,
+        "node_a_id": "N122.97087330_14.07001720",
+        "node_a_mapped_roads": "Mampili Road",
+        "node_a_osm_way_ids": "231221351",
+        "node_a_highway_classes": "unclassified",
+        "node_b_id": "N122.97089800_14.06922540",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "908367119",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 29
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9708733,
+            14.0700172
+          ],
+          [
+            122.970898,
+            14.069225399999997
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C019",
+        "component_b_vertices": 3,
+        "gap_distance_m": 91.6,
+        "node_a_id": "N122.99019199_14.08793459",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "427979393",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.99074094_14.08730702",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "427979393",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 30
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.99019199084898,
+            14.087934586523073
+          ],
+          [
+            122.99074093638846,
+            14.087307016403319
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C018",
+        "component_b_vertices": 3,
+        "gap_distance_m": 108.0,
+        "node_a_id": "N122.97087330_14.07001720",
+        "node_a_mapped_roads": "Mampili Road",
+        "node_a_osm_way_ids": "231221351",
+        "node_a_highway_classes": "unclassified",
+        "node_b_id": "N122.97076170_14.06905330",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "908367118",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 31
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9708733,
+            14.0700172
+          ],
+          [
+            122.9707617,
+            14.069053299999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C012",
+        "component_b_vertices": 5,
+        "gap_distance_m": 116.2,
+        "node_a_id": "N122.89846546_14.08548293",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "1031651850",
+        "node_a_highway_classes": "track",
+        "node_b_id": "N122.89741910_14.08523950",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "1031651868",
+        "node_b_highway_classes": "track",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 32
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.89846545739336,
+            14.085482928182932
+          ],
+          [
+            122.89741909999998,
+            14.0852395
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C014",
+        "component_b_vertices": 4,
+        "gap_distance_m": 180.8,
+        "node_a_id": "N122.98139380_14.10638590",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "240285465",
+        "node_a_highway_classes": "unclassified",
+        "node_b_id": "N122.98282250_14.10723340",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "231223055",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 33
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9813938,
+            14.1063859
+          ],
+          [
+            122.98282250000001,
+            14.107233399999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 192.7,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.95702100_14.11452220",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 34
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.95702100000001,
+            14.114522199999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C028",
+        "component_a_vertices": 2,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 249.6,
+        "node_a_id": "N122.95817586_14.11080152",
+        "node_a_mapped_roads": "E. Ferrer Street",
+        "node_a_osm_way_ids": "238085077",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96044615_14.11122563",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 35
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95817586318995,
+            14.110801519224188
+          ],
+          [
+            122.96044614815904,
+            14.11122562667918
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 263.6,
+        "node_a_id": "N122.95469083_14.11381424",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.95702100_14.11452220",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 36
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95469083206746,
+            14.113814237116335
+          ],
+          [
+            122.95702100000001,
+            14.114522199999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C021",
+        "component_b_vertices": 2,
+        "gap_distance_m": 272.9,
+        "node_a_id": "N122.92096125_14.07904964",
+        "node_a_mapped_roads": "San Lorenzo Ruiz Road",
+        "node_a_osm_way_ids": "252846041",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.91962935_14.08113328",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "313522856",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 37
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.92096124687637,
+            14.079049635912021
+          ],
+          [
+            122.91962935107263,
+            14.08113327885074
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C003",
+        "component_a_vertices": 36,
+        "component_b": "C005",
+        "component_b_vertices": 25,
+        "gap_distance_m": 273.1,
+        "node_a_id": "N123.05280810_13.91944901",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "953967969",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N123.05292860_13.92189930",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "953967969",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 38
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            123.05280810427719,
+            13.9194490057145
+          ],
+          [
+            123.05292859999999,
+            13.921899299999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C028",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 302.1,
+        "node_a_id": "N122.95817586_14.11080152",
+        "node_a_mapped_roads": "E. Ferrer Street",
+        "node_a_osm_way_ids": "238085077",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96091518_14.11135335",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 39
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95817586318995,
+            14.110801519224188
+          ],
+          [
+            122.9609151775544,
+            14.111353345307265
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C018",
+        "component_a_vertices": 3,
+        "component_b": "C034",
+        "component_b_vertices": 2,
+        "gap_distance_m": 337.6,
+        "node_a_id": "N122.97074906_14.06905300",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "908367118",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96798039_14.07046137",
+        "node_b_mapped_roads": "Amoguis",
+        "node_b_osm_way_ids": "312926520",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 40
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.97074905819422,
+            14.06905299611065
+          ],
+          [
+            122.96798039182363,
+            14.070461365910369
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C034",
+        "component_a_vertices": 2,
+        "component_b": "C035",
+        "component_b_vertices": 2,
+        "gap_distance_m": 343.8,
+        "node_a_id": "N122.96798039_14.07046137",
+        "node_a_mapped_roads": "Amoguis",
+        "node_a_osm_way_ids": "312926520",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.97089800_14.06922540",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "908367119",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 41
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96798039182363,
+            14.070461365910369
+          ],
+          [
+            122.970898,
+            14.069225399999997
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C017",
+        "component_a_vertices": 3,
+        "component_b": "C022",
+        "component_b_vertices": 2,
+        "gap_distance_m": 344.4,
+        "node_a_id": "N122.95162653_14.12212122",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "884123345",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.94852802_14.12285821",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569804",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 42
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95162653366344,
+            14.122121219481167
+          ],
+          [
+            122.9485280177521,
+            14.12285820871522
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C034",
+        "component_a_vertices": 2,
+        "component_b": "C036",
+        "component_b_vertices": 2,
+        "gap_distance_m": 358.5,
+        "node_a_id": "N122.96799625_14.07049810",
+        "node_a_mapped_roads": "Amoguis",
+        "node_a_osm_way_ids": "312926520",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.97108330_14.06931350",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "312926547",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 43
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96799625176038,
+            14.070498095003723
+          ],
+          [
+            122.97108330000002,
+            14.069313499999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C029",
+        "component_b_vertices": 2,
+        "gap_distance_m": 370.3,
+        "node_a_id": "N122.95648381_14.14377517",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "281605729",
+        "node_a_highway_classes": "unclassified",
+        "node_b_id": "N122.95973382_14.14483514",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "882785536",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 44
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95648381396128,
+            14.143775173502172
+          ],
+          [
+            122.95973382093798,
+            14.144835140086723
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C007",
+        "component_a_vertices": 16,
+        "component_b": "C018",
+        "component_b_vertices": 3,
+        "gap_distance_m": 376.0,
+        "node_a_id": "N122.97013706_14.06572779",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "1380123175",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.97074906_14.06905300",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "908367118",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 45
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9701370647539,
+            14.065727793573595
+          ],
+          [
+            122.97074905819422,
+            14.06905299611065
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C007",
+        "component_a_vertices": 16,
+        "component_b": "C035",
+        "component_b_vertices": 2,
+        "gap_distance_m": 376.1,
+        "node_a_id": "N122.97013706_14.06572779",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "1380123175",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.97081803_14.06904080",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "908367119",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 46
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9701370647539,
+            14.065727793573595
+          ],
+          [
+            122.97081803310404,
+            14.069040801725867
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C007",
+        "component_a_vertices": 16,
+        "component_b": "C036",
+        "component_b_vertices": 2,
+        "gap_distance_m": 378.5,
+        "node_a_id": "N122.97013706_14.06572779",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "1380123175",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.97115710_14.06898086",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "312926547",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 47
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9701370647539,
+            14.065727793573595
+          ],
+          [
+            122.97115709781619,
+            14.068980856643606
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C026",
+        "component_b_vertices": 2,
+        "gap_distance_m": 397.0,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95487507_14.10833341",
+        "node_b_mapped_roads": "J. Lukban Extension",
+        "node_b_osm_way_ids": "258547120",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 48
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.95487506890927,
+            14.10833340929211
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C024",
+        "component_b_vertices": 2,
+        "gap_distance_m": 418.1,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95468974_14.11379881",
+        "node_b_mapped_roads": "Justo Lukban Street",
+        "node_b_osm_way_ids": "241268982",
+        "node_b_highway_classes": "secondary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 49
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.95468973779018,
+            14.11379880748386
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C014",
+        "component_a_vertices": 4,
+        "component_b": "C037",
+        "component_b_vertices": 2,
+        "gap_distance_m": 425.5,
+        "node_a_id": "N122.98307027_14.10773913",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "231223055",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.98693510_14.10699074",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "231223055",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 50
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.98307026619547,
+            14.107739130692545
+          ],
+          [
+            122.98693510153034,
+            14.106990740094684
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C027",
+        "component_a_vertices": 2,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 432.5,
+        "node_a_id": "N122.95702100_14.11452220",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569868",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.95817586_14.11080152",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 51
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95702100000001,
+            14.114522199999998
+          ],
+          [
+            122.95817586318995,
+            14.110801519224188
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C026",
+        "component_a_vertices": 2,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 435.2,
+        "node_a_id": "N122.95487362_14.10836258",
+        "node_a_mapped_roads": "J. Lukban Extension",
+        "node_a_osm_way_ids": "258547120",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.95817439_14.11060702",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 52
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95487362054577,
+            14.108362580557054
+          ],
+          [
+            122.95817439398203,
+            14.110607018699174
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C025",
+        "component_b_vertices": 2,
+        "gap_distance_m": 455.0,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95479200_14.11442092",
+        "node_b_mapped_roads": "Vicente Basit Street",
+        "node_b_osm_way_ids": "1293978679",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 53
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.95479199636384,
+            14.11442092454835
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C031",
+        "component_a_vertices": 2,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 457.3,
+        "node_a_id": "N122.96100092_14.11182374",
+        "node_a_mapped_roads": "Diego Naing",
+        "node_a_osm_way_ids": "313225981",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96389339_14.11482523",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 54
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96100092491054,
+            14.111823739491465
+          ],
+          [
+            122.96389339188904,
+            14.114825232945241
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C031",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 474.8,
+        "node_a_id": "N122.96100092_14.11182374",
+        "node_a_mapped_roads": "Diego Naing",
+        "node_a_osm_way_ids": "313225981",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 55
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96100092491054,
+            14.111823739491465
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C027",
+        "component_a_vertices": 2,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 495.9,
+        "node_a_id": "N122.95702100_14.11452220",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569868",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.96053793_14.11165621",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 56
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95702100000001,
+            14.114522199999998
+          ],
+          [
+            122.96053792834716,
+            14.111656208825744
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 503.0,
+        "node_a_id": "N122.95468974_14.11379881",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.95817586_14.11080152",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 57
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95468973779018,
+            14.11379880748386
+          ],
+          [
+            122.95817586318995,
+            14.110801519224188
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 505.0,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.95817586_14.11080152",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 58
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.95817586318995,
+            14.110801519224188
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C030",
+        "component_a_vertices": 2,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 505.6,
+        "node_a_id": "N122.96053793_14.11165621",
+        "node_a_mapped_roads": "E. Fernandez Street",
+        "node_a_osm_way_ids": "416514459",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96389339_14.11482523",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 59
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96053792834716,
+            14.111656208825744
+          ],
+          [
+            122.96389339188904,
+            14.114825232945241
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C030",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 522.5,
+        "node_a_id": "N122.96053793_14.11165621",
+        "node_a_mapped_roads": "E. Fernandez Street",
+        "node_a_osm_way_ids": "416514459",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 60
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.96053792834716,
+            14.111656208825744
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C027",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 524.3,
+        "node_a_id": "N122.95702100_14.11452220",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569868",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.96100092_14.11182374",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 61
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95702100000001,
+            14.114522199999998
+          ],
+          [
+            122.96100092491054,
+            14.111823739491465
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C007",
+        "component_a_vertices": 16,
+        "component_b": "C034",
+        "component_b_vertices": 2,
+        "gap_distance_m": 576.1,
+        "node_a_id": "N122.97013706_14.06572779",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "1380123175",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.96798039_14.07046137",
+        "node_b_mapped_roads": "Amoguis",
+        "node_b_osm_way_ids": "312926520",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 62
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9701370647539,
+            14.065727793573595
+          ],
+          [
+            122.96798039182363,
+            14.070461365910369
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C037",
+        "component_b_vertices": 2,
+        "gap_distance_m": 600.3,
+        "node_a_id": "N122.98142340_14.10629010",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "240285465",
+        "node_a_highway_classes": "unclassified",
+        "node_b_id": "N122.98693510_14.10699074",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "231223055",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 63
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9814234,
+            14.1062901
+          ],
+          [
+            122.98693510153034,
+            14.106990740094684
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C026",
+        "component_b_vertices": 2,
+        "gap_distance_m": 605.5,
+        "node_a_id": "N122.95468974_14.11379881",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.95487362_14.10836258",
+        "node_b_mapped_roads": "J. Lukban Extension",
+        "node_b_osm_way_ids": "258547120",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 64
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95468973779018,
+            14.11379880748386
+          ],
+          [
+            122.95487362054577,
+            14.108362580557054
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C026",
+        "component_b_vertices": 2,
+        "gap_distance_m": 628.0,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95487362_14.10836258",
+        "node_b_mapped_roads": "J. Lukban Extension",
+        "node_b_osm_way_ids": "258547120",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 65
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.95487362054577,
+            14.108362580557054
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 644.6,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.96053793_14.11165621",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 66
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.96053792834716,
+            14.111656208825744
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C005",
+        "component_a_vertices": 25,
+        "component_b": "C013",
+        "component_b_vertices": 5,
+        "gap_distance_m": 648.2,
+        "node_a_id": "N123.05187900_13.92338080",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "953967969",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N123.05397100_13.92883830",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "953967967",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 67
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            123.051879,
+            13.9233808
+          ],
+          [
+            123.053971,
+            13.928838299999999
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C026",
+        "component_b_vertices": 2,
+        "gap_distance_m": 666.5,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.95487362_14.10836258",
+        "node_b_mapped_roads": "J. Lukban Extension",
+        "node_b_osm_way_ids": "258547120",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 68
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.95487362054577,
+            14.108362580557054
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 674.9,
+        "node_a_id": "N122.95468974_14.11379881",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.96053793_14.11165621",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 69
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95468973779018,
+            14.11379880748386
+          ],
+          [
+            122.96053792834716,
+            14.111656208825744
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C026",
+        "component_a_vertices": 2,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 680.8,
+        "node_a_id": "N122.95487362_14.10836258",
+        "node_a_mapped_roads": "J. Lukban Extension",
+        "node_a_osm_way_ids": "258547120",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.96044615_14.11122563",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 70
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95487362054577,
+            14.108362580557054
+          ],
+          [
+            122.96044614815904,
+            14.11122562667918
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 681.4,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.96100092_14.11182374",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 71
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.96100092491054,
+            14.111823739491465
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 682.3,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95702100_14.11452220",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 72
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.95702100000001,
+            14.114522199999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 716.0,
+        "node_a_id": "N122.95468974_14.11379881",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.96100092_14.11182374",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 73
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95468973779018,
+            14.11379880748386
+          ],
+          [
+            122.96100092491054,
+            14.111823739491465
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C026",
+        "component_a_vertices": 2,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 723.8,
+        "node_a_id": "N122.95487362_14.10836258",
+        "node_a_mapped_roads": "J. Lukban Extension",
+        "node_a_osm_way_ids": "258547120",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.95702100_14.11452220",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 74
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95487362054577,
+            14.108362580557054
+          ],
+          [
+            122.95702100000001,
+            14.114522199999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C001",
+        "component_a_vertices": 12714,
+        "component_b": "C010",
+        "component_b_vertices": 9,
+        "gap_distance_m": 728.7,
+        "node_a_id": "N123.01711320_14.06274520",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "882313595",
+        "node_a_highway_classes": "track",
+        "node_b_id": "N123.01828380_14.06919170",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "342516290",
+        "node_b_highway_classes": "track",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 75
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            123.0171132,
+            14.0627452
+          ],
+          [
+            123.0182838,
+            14.0691917
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C026",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 732.3,
+        "node_a_id": "N122.95487362_14.10836258",
+        "node_a_mapped_roads": "J. Lukban Extension",
+        "node_a_osm_way_ids": "258547120",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.96091518_14.11135335",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 76
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95487362054577,
+            14.108362580557054
+          ],
+          [
+            122.9609151775544,
+            14.111353345307265
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C027",
+        "component_a_vertices": 2,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 740.5,
+        "node_a_id": "N122.95703745_14.11461390",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569868",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.96389339_14.11482523",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 77
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9570374522103,
+            14.114613896449127
+          ],
+          [
+            122.96389339188904,
+            14.114825232945241
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C027",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 744.0,
+        "node_a_id": "N122.95703745_14.11461390",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569868",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 78
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9570374522103,
+            14.114613896449127
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C028",
+        "component_a_vertices": 2,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 762.7,
+        "node_a_id": "N122.95817586_14.11080152",
+        "node_a_mapped_roads": "E. Ferrer Street",
+        "node_a_osm_way_ids": "238085077",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96389339_14.11482523",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 79
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95817586318995,
+            14.110801519224188
+          ],
+          [
+            122.96389339188904,
+            14.114825232945241
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C028",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 777.3,
+        "node_a_id": "N122.95817586_14.11080152",
+        "node_a_mapped_roads": "E. Ferrer Street",
+        "node_a_osm_way_ids": "238085077",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 80
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95817586318995,
+            14.110801519224188
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C023",
+        "component_b_vertices": 2,
+        "gap_distance_m": 786.2,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95226030_14.10563199",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "573560002",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 81
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.9522603028708,
+            14.105631992288487
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 797.5,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95817586_14.11080152",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 82
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.95817586318995,
+            14.110801519224188
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C028",
+        "component_b_vertices": 2,
+        "gap_distance_m": 827.7,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95817439_14.11060702",
+        "node_b_mapped_roads": "E. Ferrer Street",
+        "node_b_osm_way_ids": "238085077",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 83
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.95817439398203,
+            14.110607018699174
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C017",
+        "component_a_vertices": 3,
+        "component_b": "C025",
+        "component_b_vertices": 2,
+        "gap_distance_m": 892.1,
+        "node_a_id": "N122.95185770_14.12191210",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "884123345",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.95479200_14.11442092",
+        "node_b_mapped_roads": "Vicente Basit Street",
+        "node_b_osm_way_ids": "1293978679",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 84
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9518577,
+            14.1219121
+          ],
+          [
+            122.95479199636384,
+            14.11442092454835
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 935.1,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.96389339_14.11482523",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 85
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.96389339188904,
+            14.114825232945241
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C025",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 939.0,
+        "node_a_id": "N122.95524648_14.11433862",
+        "node_a_mapped_roads": "Vicente Basit Street",
+        "node_a_osm_way_ids": "1293978679",
+        "node_a_highway_classes": "tertiary",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 86
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95524647720302,
+            14.114338619658097
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C024",
+        "component_b_vertices": 2,
+        "gap_distance_m": 940.8,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95468974_14.11379881",
+        "node_b_mapped_roads": "Justo Lukban Street",
+        "node_b_osm_way_ids": "241268982",
+        "node_b_highway_classes": "secondary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 87
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.95468973779018,
+            14.11379880748386
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C017",
+        "component_a_vertices": 3,
+        "component_b": "C024",
+        "component_b_vertices": 2,
+        "gap_distance_m": 951.9,
+        "node_a_id": "N122.95185770_14.12191210",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "884123345",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.95469083_14.11381424",
+        "node_b_mapped_roads": "Justo Lukban Street",
+        "node_b_osm_way_ids": "241268982",
+        "node_b_highway_classes": "secondary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 88
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9518577,
+            14.1219121
+          ],
+          [
+            122.95469083206746,
+            14.113814237116335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C017",
+        "component_a_vertices": 3,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 986.3,
+        "node_a_id": "N122.95185770_14.12191210",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "884123345",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N122.95703745_14.11461390",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 89
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9518577,
+            14.1219121
+          ],
+          [
+            122.9570374522103,
+            14.114613896449127
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C032",
+        "component_b_vertices": 2,
+        "gap_distance_m": 999.9,
+        "node_a_id": "N122.95469083_14.11381424",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.96389339_14.11482523",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 90
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95469083206746,
+            14.113814237116335
+          ],
+          [
+            122.96389339188904,
+            14.114825232945241
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C024",
+        "component_a_vertices": 2,
+        "component_b": "C033",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1004.9,
+        "node_a_id": "N122.95469083_14.11381424",
+        "node_a_mapped_roads": "Justo Lukban Street",
+        "node_a_osm_way_ids": "241268982",
+        "node_a_highway_classes": "secondary",
+        "node_b_id": "N122.96391638_14.11501667",
+        "node_b_mapped_roads": "Lakan Street",
+        "node_b_osm_way_ids": "313029298",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 91
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95469083206746,
+            14.113814237116335
+          ],
+          [
+            122.9639163753553,
+            14.115016665584996
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C025",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1010.6,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95479200_14.11442092",
+        "node_b_mapped_roads": "Vicente Basit Street",
+        "node_b_osm_way_ids": "1293978679",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 92
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.95479199636384,
+            14.11442092454835
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1028.6,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96044615_14.11122563",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 93
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.96044614815904,
+            14.11122562667918
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C017",
+        "component_b_vertices": 3,
+        "gap_distance_m": 1031.1,
+        "node_a_id": "N122.95089059_14.11269683",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95185770_14.12191210",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "884123345",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 94
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95089059323173,
+            14.112696827301182
+          ],
+          [
+            122.9518577,
+            14.1219121
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C003",
+        "component_a_vertices": 36,
+        "component_b": "C013",
+        "component_b_vertices": 5,
+        "gap_distance_m": 1045.5,
+        "node_a_id": "N123.05280810_13.91944901",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "953967969",
+        "node_a_highway_classes": "service",
+        "node_b_id": "N123.05449669_13.92869703",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "953967967",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 95
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            123.05280810427719,
+            13.9194490057145
+          ],
+          [
+            123.05449668560411,
+            13.928697033030303
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C030",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1061.9,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96044615_14.11122563",
+        "node_b_mapped_roads": "E. Fernandez Street",
+        "node_b_osm_way_ids": "416514459",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 96
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.96044614815904,
+            14.11122562667918
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C016",
+        "component_a_vertices": 3,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1076.8,
+        "node_a_id": "N122.95102301_14.11259151",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "313228230",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96091518_14.11135335",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 97
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95102300608495,
+            14.11259151461582
+          ],
+          [
+            122.9609151775544,
+            14.111353345307265
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C027",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1105.1,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95702100_14.11452220",
+        "node_b_mapped_roads": "Unnamed mapped road/path",
+        "node_b_osm_way_ids": "902569868",
+        "node_b_highway_classes": "service",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 98
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.95702100000001,
+            14.114522199999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C023",
+        "component_a_vertices": 2,
+        "component_b": "C031",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1111.3,
+        "node_a_id": "N122.95248670_14.10562190",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "573560002",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.96091518_14.11135335",
+        "node_b_mapped_roads": "Diego Naing",
+        "node_b_osm_way_ids": "313225981",
+        "node_b_highway_classes": "residential",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 99
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.95248670000001,
+            14.105621900000001
+          ],
+          [
+            122.9609151775544,
+            14.111353345307265
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "component_a": "C022",
+        "component_a_vertices": 2,
+        "component_b": "C025",
+        "component_b_vertices": 2,
+        "gap_distance_m": 1157.4,
+        "node_a_id": "N122.94852802_14.12285821",
+        "node_a_mapped_roads": "Unnamed mapped road/path",
+        "node_a_osm_way_ids": "902569804",
+        "node_a_highway_classes": "residential",
+        "node_b_id": "N122.95479200_14.11442092",
+        "node_b_mapped_roads": "Vicente Basit Street",
+        "node_b_osm_way_ids": "1293978679",
+        "node_b_highway_classes": "tertiary",
+        "review_status": "NOT REVIEWED",
+        "interpretation": "Straight-line nearest-node pair only; not a road, connector, or route.",
+        "review_rank": 100
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            122.9485280177521,
+            14.12285820871522
+          ],
+          [
+            122.95479199636384,
+            14.11442092454835
+          ]
+        ]
+      }
+    }
+  ]
+}

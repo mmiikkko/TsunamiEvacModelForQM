@@ -1,0 +1,222 @@
+{
+  "type": "FeatureCollection",
+  "name": "Gubat origin access review points",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "ROSEVILLE",
+        "zone_name": "Roseville Subdivision",
+        "candidate_node_id": "N122.96286196_14.11609858",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 65.8,
+        "anchor_to_candidate_node_m": 163.0,
+        "nearest_road_osm_id": "303949285",
+        "nearest_road_name_or_ref": "",
+        "nearest_road_highway": "residential",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "origin_anchor"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.96407,
+          14.11698
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "ROSEVILLE",
+        "zone_name": "Roseville Subdivision",
+        "candidate_node_id": "N122.96286196_14.11609858",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 65.8,
+        "anchor_to_candidate_node_m": 163.0,
+        "nearest_road_osm_id": "303949285",
+        "nearest_road_name_or_ref": "",
+        "nearest_road_highway": "residential",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "candidate_graph_node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.96286195553775,
+          14.116098576559265
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "ROSEVILLE",
+        "zone_name": "Roseville Subdivision",
+        "candidate_node_id": "N122.96286196_14.11609858",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 65.8,
+        "anchor_to_candidate_node_m": 163.0,
+        "nearest_road_osm_id": "303949285",
+        "nearest_road_name_or_ref": "",
+        "nearest_road_highway": "residential",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "nearest_road_geometry_point"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.96380112,
+          14.1164488
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "CLEOFE",
+        "zone_name": "Cleofe Ecology Village",
+        "candidate_node_id": "N122.96850850_14.11370370",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 13.4,
+        "anchor_to_candidate_node_m": 38.3,
+        "nearest_road_osm_id": "303947456",
+        "nearest_road_name_or_ref": "",
+        "nearest_road_highway": "residential",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "origin_anchor"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.96842,
+          14.11337
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "CLEOFE",
+        "zone_name": "Cleofe Ecology Village",
+        "candidate_node_id": "N122.96850850_14.11370370",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 13.4,
+        "anchor_to_candidate_node_m": 38.3,
+        "nearest_road_osm_id": "303947456",
+        "nearest_road_name_or_ref": "",
+        "nearest_road_highway": "residential",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "candidate_graph_node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.9685085,
+          14.1137037
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "CLEOFE",
+        "zone_name": "Cleofe Ecology Village",
+        "candidate_node_id": "N122.96850850_14.11370370",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 13.4,
+        "anchor_to_candidate_node_m": 38.3,
+        "nearest_road_osm_id": "303947456",
+        "nearest_road_name_or_ref": "",
+        "nearest_road_highway": "residential",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "nearest_road_geometry_point"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.96829588,
+          14.11337181
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "MANDULONGAN",
+        "zone_name": "Mandulongan (Purok Tsiko)",
+        "candidate_node_id": "N122.97966360_14.12075320",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 24.6,
+        "anchor_to_candidate_node_m": 25.1,
+        "nearest_road_osm_id": "416514450",
+        "nearest_road_name_or_ref": "Borabod - Mandulongan Road",
+        "nearest_road_highway": "unclassified",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "origin_anchor"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.97982,
+          14.12092
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "MANDULONGAN",
+        "zone_name": "Mandulongan (Purok Tsiko)",
+        "candidate_node_id": "N122.97966360_14.12075320",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 24.6,
+        "anchor_to_candidate_node_m": 25.1,
+        "nearest_road_osm_id": "416514450",
+        "nearest_road_name_or_ref": "Borabod - Mandulongan Road",
+        "nearest_road_highway": "unclassified",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "candidate_graph_node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.9796636,
+          14.1207532
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "MANDULONGAN",
+        "zone_name": "Mandulongan (Purok Tsiko)",
+        "candidate_node_id": "N122.97966360_14.12075320",
+        "candidate_component_id": "C001",
+        "anchor_to_road_geometry_m": 24.6,
+        "anchor_to_candidate_node_m": 25.1,
+        "nearest_road_osm_id": "416514450",
+        "nearest_road_name_or_ref": "Borabod - Mandulongan Road",
+        "nearest_road_highway": "unclassified",
+        "review_status": "REVIEW_REQUIRED",
+        "not_a_route": true,
+        "feature_role": "nearest_road_geometry_point"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.97970067,
+          14.12073117
+        ]
+      }
+    }
+  ]
+}

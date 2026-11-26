@@ -1,0 +1,4 @@
+zone_id,zone_name,reviewed_on,visual_status,nearest_mapped_road_osm_id,visible_pedestrian_entrance,visible_walkable_connection,bridge_or_grade_separation,visible_access_restriction,local_confirmation_status,confirmation_source,source_date,review_notes
+ROSEVILLE,Roseville Subdivision,,,,,,,,,,,
+CLEOFE,Cleofe Ecology Village,,,,,,,,,,,
+MANDULONGAN,Mandulongan (Purok Tsiko),,,,,,,,,,,
