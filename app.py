@@ -107,7 +107,10 @@ with st.sidebar:
     )
     capacity_scale = st.slider("Path capacity multiplier", 0.5, 1.5, 1.0, 0.05)
     departure_delay = st.slider("Departure delay (minutes)", 0, 15, 0)
-    planning_window = st.slider("Planning comparison window (minutes)", 5, 60, 20)
+    planning_window = st.slider(
+        "Arrival checkpoint (minutes)", 5, 60, 20,
+        help="Shows how many assigned synthetic groups are estimated to reach candidate pins by this minute. It is not a tsunami arrival time or warning window.",
+    )
     edge_ids = inputs["roads"]["edge_id"].astype(str).tolist()
     closed_edges = set(st.multiselect("Close sample path segments (demo network)", edge_ids))
     st.caption("Adjust these values only as scenario assumptions. Replace them with evidence when available.")
@@ -1010,11 +1013,18 @@ for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict
     destination_capacity_remaining[destination_node_id] -= group_size
     origin_assignment_totals[zone_id] += group_size
     origin_assignment_by_pin[zone_id][destination_node_id] = origin_assignment_by_pin[zone_id].get(destination_node_id, 0) + group_size
+    group_departure_min = float(group["departure_min"]) + float(departure_delay)
+    group_travel_min = sum(
+        float(routing_graph[start][end].get("free_flow_min", 0.0))
+        for start, end in zip(path_nodes, path_nodes[1:])
+    )
     group_route_assignments.append({
         "group_id": str(group["group_id"]),
         "origin": str(group["zone"]),
         "group_size": group_size,
-        "departure_min": float(group["departure_min"]) + float(departure_delay),
+        "departure_min": group_departure_min,
+        "travel_min": group_travel_min,
+        "arrival_min": group_departure_min + group_travel_min,
         "destination_node_id": destination_node_id,
         "nodes": path_nodes,
     })
@@ -1697,6 +1707,68 @@ with details_col:
             with detail_tabs[2]:
                 st.markdown("### Origins routed to selected candidate pins")
                 st.caption("Set a receiving limit for each pin below. Origin-to-pin shares are set in the left scenario sidebar. Whole groups are routed in departure order toward those shares, subject to graph connectivity and remaining pin capacity.")
+                assigned_group_count = len(group_route_assignments)
+                assigned_people_total = sum(int(group["group_size"]) for group in group_route_assignments)
+                unassigned_group_count = sum(int(counts["groups"]) for counts in unassigned_by_origin.values())
+                unassigned_people_total = sum(
+                    int(counts["network"] + counts["capacity"] + counts["allocation"] + counts["invalid"])
+                    for counts in unassigned_by_origin.values()
+                )
+                arrived_by_checkpoint = [
+                    group for group in group_route_assignments
+                    if float(group["arrival_min"]) <= float(planning_window)
+                ]
+                remaining_at_checkpoint = [
+                    group for group in group_route_assignments
+                    if float(group["arrival_min"]) > float(planning_window)
+                ]
+                checkpoint_people = sum(int(group["group_size"]) for group in arrived_by_checkpoint)
+                remaining_checkpoint_people = sum(int(group["group_size"]) for group in remaining_at_checkpoint)
+                last_assigned_arrival = max(
+                    (float(group["arrival_min"]) for group in group_route_assignments), default=None
+                )
+                st.markdown("#### Scenario completion summary")
+                summary_cols_top = st.columns(2)
+                summary_cols_bottom = st.columns(2)
+                summary_cols_top[0].metric(
+                    f"Estimated at candidate pins by {planning_window} min",
+                    f"{checkpoint_people:,} people",
+                    f"{len(arrived_by_checkpoint):,} of {len(synthetic_groups):,} groups",
+                )
+                summary_cols_top[1].metric(
+                    "Last assigned group arrival",
+                    f"{last_assigned_arrival:.1f} min" if last_assigned_arrival is not None else "No assigned route",
+                    f"{assigned_people_total:,} people · {assigned_group_count:,} groups assigned",
+                )
+                summary_cols_bottom[0].metric(
+                    f"Still en route at {planning_window} min",
+                    f"{remaining_checkpoint_people:,} people",
+                    f"{len(remaining_at_checkpoint):,} groups",
+                )
+                summary_cols_bottom[1].metric(
+                    "Not assigned to a pin",
+                    f"{unassigned_people_total:,} people",
+                    f"{unassigned_group_count:,} groups",
+                )
+                st.warning(
+                    "These are estimated arrivals at user-selected candidate points using assumed departures and uniform free-flow walking speed. "
+                    "They are not confirmed safe evacuations: the receiving sites are unverified, and these times are not compared with tsunami arrival."
+                )
+                if group_route_assignments:
+                    arrival_events = pd.DataFrame([
+                        {
+                            "minute": max(0, math.ceil(float(group["arrival_min"]))),
+                            "people": int(group["group_size"]),
+                        }
+                        for group in group_route_assignments
+                    ]).groupby("minute", as_index=True)["people"].sum()
+                    chart_end_minute = max(int(arrival_events.index.max()), int(planning_window))
+                    arrival_curve = arrival_events.reindex(range(chart_end_minute + 1), fill_value=0).cumsum()
+                    with st.expander("Estimated arrivals over time", expanded=False):
+                        st.area_chart(arrival_curve, height=180)
+                        st.caption("Cumulative people by whole model minute. This chart shows route-model estimates, not tsunami timing or safety.")
+                else:
+                    st.info("No groups have assigned routes yet. Add connected candidate pins, enter positive pin limits, and allocate origin shares to see an outcome summary.")
                 if not destination_node_ids:
                     st.info("No candidate receiving pins yet. Turn on **Pick a road point**, select a teal node, then click **Add selected pin**. Repeat for additional destinations.")
                 else:
