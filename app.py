@@ -1200,7 +1200,20 @@ destination_capacity_summary = [
     {
         "Candidate pin": index + 1,
         "Road node": node_id,
+        "Planned demand": round(sum(
+            int(origin_people_caps.get(zone_id, 0))
+            * int(origin_pin_shares.get(zone_id, {}).get(node_id, 0)) / 100.0
+            for zone_id in selected_origin_ids
+        )),
         "Capacity entered": int(st.session_state.get(f"receiving_capacity_{node_id}", 0)),
+        "Planned shortfall": max(
+            0,
+            math.ceil(sum(
+                int(origin_people_caps.get(zone_id, 0))
+                * int(origin_pin_shares.get(zone_id, {}).get(node_id, 0)) / 100.0
+                for zone_id in selected_origin_ids
+            ) - int(st.session_state.get(f"receiving_capacity_{node_id}", 0))),
+        ),
         "People assigned": int(st.session_state.get(f"receiving_capacity_{node_id}", 0)) - destination_capacity_remaining[node_id],
         "Capacity remaining": destination_capacity_remaining[node_id],
         "Capacity used (%)": round(
@@ -1898,9 +1911,29 @@ with details_col:
                             help="Scenario capacity only. Confirm the site's permission, usable space, access, and capacity locally before treating it as a real receiving area.",
                         )
                     st.markdown("**Capacity used in this scenario**")
+                    planned_capacity_rows = [
+                        row for row in destination_capacity_summary if row["Planned demand"] > 0
+                    ]
+                    planned_shortfall_total = sum(row["Planned shortfall"] for row in planned_capacity_rows)
+                    if planned_shortfall_total:
+                        demand_details = "; ".join(
+                            f"Pin {row['Candidate pin']}: {row['Planned demand']:,} planned vs {row['Capacity entered']:,} capacity"
+                            for row in planned_capacity_rows if row["Planned shortfall"] > 0
+                        )
+                        st.error(
+                            f"Not enough receiving capacity for the configured shares: approximately "
+                            f"{planned_shortfall_total:,} people exceed pin limits. {demand_details}. "
+                            "Those people will remain unassigned unless you raise the limits, add another pin, or change the origin shares/evacuee totals."
+                        )
+                    capacity_blocked_people = sum(int(counts["capacity"]) for counts in unassigned_by_origin.values())
+                    if capacity_blocked_people:
+                        st.warning(
+                            f"{capacity_blocked_people:,} people in groups could not be assigned because the configured pin capacities were reached. "
+                            "Whole-group sizes can make the final count differ slightly from the planned shortfall above."
+                        )
                     st.dataframe(
                         pd.DataFrame(destination_capacity_summary)[[
-                            "Candidate pin", "Capacity entered", "People assigned",
+                            "Candidate pin", "Planned demand", "Capacity entered", "Planned shortfall", "People assigned",
                             "Capacity remaining", "Capacity used (%)",
                         ]],
                         use_container_width=True,
