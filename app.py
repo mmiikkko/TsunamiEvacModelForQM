@@ -264,8 +264,9 @@ result = run_simulation(
     closed_edges=closed_edges,
 )
 
-@st.cache_data
+@st.cache_resource(show_spinner=False)
 def load_interactive_map_data(base_dir: str, graph_revision: tuple[int, int]):
+    """Share the read-only, parsed GIS layers between app reruns and sessions."""
     base = Path(base_dir)
     return {
         "hazard": read_gpkg_features(base / "data" / "gubat_tsunami_clip_fixed.gpkg"),
@@ -273,7 +274,6 @@ def load_interactive_map_data(base_dir: str, graph_revision: tuple[int, int]):
         "gubat_boundary": read_gpkg_features(base / "data" / "gubat_boundary_traced_fixed.gpkg"),
         "daet_boundary": read_gpkg_features(base / "data" / "daet_boundary.gpkg"),
         "regional_boundary": read_gpkg_features(base / "data" / "daet_basud_boundary.gpkg"),
-        "buildings": read_gpkg_features(base / "data" / "raw" / "osm_daet_buildings.gpkg"),
         "road_nodes": pd.read_csv(base / "data" / "daet_basud_network_nodes.csv"),
         "road_edges": pd.read_csv(base / "data" / "daet_basud_network_edges.csv"),
     }
@@ -519,15 +519,18 @@ def add_evacuation_movement_animation(
                 cumulative_m.append(
                     cumulative_m[-1] + float(graph[left][right].get("length_m", 0.0))
                 )
-            path_cache[path_key] = (coordinates, cumulative_m)
-        coordinates, cumulative_m = path_cache[path_key]
+            path_cache[path_key] = (node_ids, coordinates, cumulative_m)
+        shared_node_ids, coordinates, cumulative_m = path_cache[path_key]
         route_length_m = cumulative_m[-1]
         if route_length_m <= 0:
             continue
         travel_min = route_length_m / speed_mps / 60.0
         prepared.append({
             **group,
-            "node_ids": node_ids,
+            # Many synthetic groups share an origin-to-pin path. Keep one
+            # immutable node/coordinate sequence per unique path instead of
+            # duplicating thousands of node IDs for every group.
+            "node_ids": shared_node_ids,
             "coordinates": coordinates,
             "cumulative_m": cumulative_m,
             "route_length_m": route_length_m,
@@ -538,7 +541,7 @@ def add_evacuation_movement_animation(
         return 0
 
     end_min = max(float(group["departure_min"]) + group["travel_min"] for group in prepared)
-    frame_count = min(40, max(8, math.ceil(end_min / 0.5)))
+    frame_count = min(24, max(8, math.ceil(end_min / 0.5)))
     step_min = end_min / frame_count if end_min > 0 else 1.0
     times = [index * step_min for index in range(frame_count + 1)]
     frame_names = [f"evacuation-{index:03d}" for index in range(len(times))]
@@ -708,14 +711,14 @@ def apply_map_search_selection():
             st.session_state["map_extent"] = "Daet–Basud"
 
 
-@st.cache_data
-def load_map_search_catalog(base_dir: str, graph_revision: tuple[int, int]):
+@st.cache_resource(show_spinner=False)
+def load_map_search_catalog(base_dir: str, graph_revision: tuple[int, int], _map_data):
     """Build local name search entries from the packaged OSM project layers."""
     base = Path(base_dir)
-    nodes = pd.read_csv(base / "data" / "daet_basud_network_nodes.csv").assign(
+    nodes = _map_data["road_nodes"].assign(
         node_id=lambda frame: frame["node_id"].astype(str)
     ).set_index("node_id")
-    edges = pd.read_csv(base / "data" / "daet_basud_network_edges.csv")
+    edges = _map_data["road_edges"]
     forward_edges = edges.loc[edges["edge_id"].astype(str).str.endswith("_F")]
     entries = []
 
@@ -818,7 +821,7 @@ try:
     active_hazard_features = (
         map_data["hazard"] if active_extent == "Gubat" else map_data["daet_hazard"]
     )
-    map_search_catalog = load_map_search_catalog(str(project_dir), graph_revision)
+    map_search_catalog = load_map_search_catalog(str(project_dir), graph_revision, map_data)
     zone_anchors = scenario_generation.load_named_zone_anchors(
         Path(project_dir) / "data" / "origin_zone_candidates.csv",
         map_data["gubat_boundary"],
