@@ -6,7 +6,12 @@
 
 ## What “shortest route” means in the app
 
-The app runs a weighted shortest-path search on the candidate road graph. Every included segment is assigned the same assumed walking speed: **1.15 m/s × the walking-speed multiplier**. Since the same speed is applied to every segment, minimizing modeled walking time is mathematically the same as minimizing mapped segment length. The speed multiplier changes displayed travel-time estimates but does not change the selected route.
+The app offers two geographic route objectives on the candidate road graph:
+
+- **Fastest estimated route** minimizes modeled walking time. Every included segment uses the same assumed walking speed: **1.15 m/s × the walking-speed multiplier**. Since speed is uniform, minimizing modeled time is mathematically the same as minimizing mapped segment length.
+- **Avoid mapped inundation first** minimizes an approximate exposed length first, then modeled walking time. Exposure is estimated with three evenly spaced samples per road segment against the selected extent's static inundation polygons. The detailed route report separately estimates overlap with each depth class using approximately 5 m samples.
+
+The second option is a static map-screening heuristic. It does not calculate when tsunami water reaches a road, whether water depth is passable, or whether the route is safer at a particular departure time. The app must not describe this result as a confirmed safe route.
 
 For origin groups, the app finds paths to reachable pins, then assigns whole groups subject to the user's origin-to-pin share settings and each pin's entered capacity. A shortest path to a pin does not mean that the pin itself is the nearest or best destination; shares and remaining capacity affect assignment.
 
@@ -43,6 +48,8 @@ The graph export now preserves `surface`, `smoothness`, `width`, `maxspeed`, `fo
 ## What the current travel-time estimate omits
 
 Travel time does not model congestion, crowd density, road width/capacity, surface-specific speeds, slope, crossings/intersections, bridge approach or crossing delay, mobility differences, closures, or time-varying tsunami inundation. The graph is built by connecting shared line vertices and does not establish that every crossing is at grade or accessible to pedestrians. A visible geometric connection may still be blocked, private, unsafe, or absent in the field.
+
+The static inundation polygons currently have no verified water-arrival time series. Therefore, the app cannot calculate whether evacuees clear a threatened segment before it floods or issue a defensible “safe evacuation” completion result. A time-aware safety comparison requires validated hazard arrival/depth-by-time data and locally reviewed road access and receiving sites.
 
 ## Review needed before describing a route as efficient or usable
 

@@ -99,7 +99,7 @@ with st.sidebar:
     population_scale = st.slider("Population multiplier", 0.5, 2.0, 1.0, 0.1)
     speed_scale = st.slider(
         "Walking speed multiplier", 0.5, 1.5, 1.0, 0.05,
-        help="Scales modeled walking time from a uniform baseline of 1.15 m/s. It does not change the selected route because every included road link uses the same speed.",
+        help="Scales modeled walking time from a uniform baseline of 1.15 m/s. With the inundation-avoidance objective, it breaks ties after mapped exposure.",
     )
     st.caption(
         f"Modeled walk speed: {1.15 * speed_scale:.2f} m/s on every included link. "
@@ -110,6 +110,19 @@ with st.sidebar:
     planning_window = st.slider(
         "Arrival checkpoint (minutes)", 5, 60, 20,
         help="Shows how many assigned synthetic groups are estimated to reach candidate pins by this minute. It is not a tsunami arrival time or warning window.",
+    )
+    route_strategy = st.selectbox(
+        "Geographic route objective",
+        ["Fastest estimated route", "Avoid mapped inundation first"],
+        help=(
+            "Fastest uses modeled walking time. Avoid mapped inundation first minimizes the estimated length "
+            "inside the static inundation polygons, then uses walking time to break ties. Neither option can "
+            "confirm safety because the hazard map has no water-arrival times and the road graph is unverified."
+        ),
+    )
+    st.caption(
+        "Route results are screening estimates. The inundation-avoidance option uses the mapped static hazard footprint; "
+        "it cannot determine whether a road floods before people reach it."
     )
     edge_ids = inputs["roads"]["edge_id"].astype(str).tolist()
     closed_edges = set(st.multiselect("Close sample path segments (demo network)", edge_ids))
@@ -346,6 +359,56 @@ def route_hazard_overlap(route_nodes, routing_graph, node_lookup, hazard_feature
         for depth_class, count in counts.items():
             distance_by_class[depth_class] = distance_by_class.get(depth_class, 0.0) + edge_length_m * count / (samples + 1)
     return distance_by_class
+
+
+def prepare_hazard_edge_costs(routing_graph, node_lookup, hazard_features):
+    """Estimate how much of each graph edge lies in any mapped inundation polygon.
+
+    Three evenly spaced samples per edge are used for path selection. This is a
+    static screening heuristic; the route report separately computes a finer
+    sampled depth-class overlap for the chosen paths.
+    """
+    hazard_polygons = []
+    for feature in hazard_features:
+        for rings in polygon_parts(feature["geometry"]):
+            if not rings or not rings[0]:
+                continue
+            outer = rings[0]
+            bounds = (
+                min(point[0] for point in outer), min(point[1] for point in outer),
+                max(point[0] for point in outer), max(point[1] for point in outer),
+            )
+            hazard_polygons.append((rings, bounds))
+
+    exposure_by_edge = {}
+    for start_node, end_node, attributes in routing_graph.edges(data=True):
+        start = node_lookup.loc[start_node]
+        end = node_lookup.loc[end_node]
+        lon1, lat1 = float(start["lon"]), float(start["lat"])
+        lon2, lat2 = float(end["lon"]), float(end["lat"])
+        edge_length_m = float(attributes.get("length_m", 0.0))
+        if edge_length_m <= 0:
+            exposure_by_edge[frozenset((start_node, end_node))] = 0.0
+            continue
+        edge_bounds = (min(lon1, lon2), min(lat1, lat2), max(lon1, lon2), max(lat1, lat2))
+        candidates = [
+            (rings, bounds) for rings, bounds in hazard_polygons
+            if bounds[0] <= edge_bounds[2] and bounds[2] >= edge_bounds[0]
+            and bounds[1] <= edge_bounds[3] and bounds[3] >= edge_bounds[1]
+        ]
+        exposed_samples = 0
+        if candidates:
+            for fraction in (0.25, 0.5, 0.75):
+                lon = lon1 + (lon2 - lon1) * fraction
+                lat = lat1 + (lat2 - lat1) * fraction
+                if any(
+                    bounds[0] <= lon <= bounds[2] and bounds[1] <= lat <= bounds[3]
+                    and point_in_polygon(lon, lat, rings)
+                    for rings, bounds in candidates
+                ):
+                    exposed_samples += 1
+        exposure_by_edge[frozenset((start_node, end_node))] = edge_length_m * exposed_samples / 3.0
+    return exposure_by_edge
 
 
 def closest_nodes_between_components(source_component, destination_components, component_nodes, node_lookup):
@@ -938,6 +1001,21 @@ destination_capacity_remaining = {
     node_id: int(st.session_state.get(f"receiving_capacity_{node_id}", 0))
     for node_id in destination_node_ids
 }
+hazard_edge_exposure = {}
+if route_strategy == "Avoid mapped inundation first":
+    exposure_cache_key = f"hazard_edge_exposure::{active_extent}::{graph_revision}"
+    if exposure_cache_key not in st.session_state:
+        with st.spinner("Scoring road segments against the static inundation map…"):
+            st.session_state[exposure_cache_key] = prepare_hazard_edge_costs(
+                routing_graph, map_node_lookup, active_hazard_features
+            )
+    hazard_edge_exposure = st.session_state[exposure_cache_key]
+# This bound makes the weighted shortest-path cost lexicographic: one extra
+# estimated exposure meter outweighs any possible simple-path time difference.
+exposure_priority = sum(
+    float(attributes.get("free_flow_min", 0.0))
+    for _, _, attributes in routing_graph.edges(data=True)
+) + 1.0
 destination_path_options = {}
 for origin in zone_summary.loc[zone_summary["people"] > 0].to_dict("records"):
     origin_node_id = str(origin["road_node_id"])
@@ -947,12 +1025,25 @@ for origin in zone_summary.loc[zone_summary["people"] > 0].to_dict("records"):
             continue
         if not nx.has_path(routing_graph, origin_node_id, destination_node_id):
             continue
-        path_nodes = nx.shortest_path(
-            routing_graph, origin_node_id, destination_node_id, weight="free_flow_min"
-        )
+        if route_strategy == "Avoid mapped inundation first":
+            path_nodes = nx.shortest_path(
+                routing_graph, origin_node_id, destination_node_id,
+                weight=lambda start, end, attributes: (
+                    hazard_edge_exposure.get(frozenset((start, end)), 0.0) * exposure_priority
+                    + float(attributes.get("free_flow_min", 0.0))
+                ),
+            )
+        else:
+            path_nodes = nx.shortest_path(
+                routing_graph, origin_node_id, destination_node_id, weight="free_flow_min"
+            )
         path_length = sum(float(routing_graph[a][b].get("length_m", 0.0)) for a, b in zip(path_nodes, path_nodes[1:]))
         path_time = sum(float(routing_graph[a][b].get("free_flow_min", 0.0)) for a, b in zip(path_nodes, path_nodes[1:]))
-        options.append((path_time, path_length, destination_node_id, path_nodes))
+        path_exposure_m = sum(
+            hazard_edge_exposure.get(frozenset((a, b)), 0.0)
+            for a, b in zip(path_nodes, path_nodes[1:])
+        ) if hazard_edge_exposure else None
+        options.append((path_time, path_length, destination_node_id, path_nodes, path_exposure_m))
     destination_path_options[str(origin["zone_id"])] = options
 
 route_assignments = []
@@ -1006,9 +1097,13 @@ for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict
         unassigned_by_origin[zone_id][reason] += group_size
         unassigned_by_origin[zone_id]["groups"] += 1
         continue
-    path_time, path_length, destination_node_id, path_nodes = max(
+    path_time, path_length, destination_node_id, path_nodes, path_exposure_m = max(
         fitting_options,
-        key=lambda item: (origin_total * int(shares[item[2]]) / 100.0 - origin_assignment_by_pin[zone_id].get(item[2], 0), -item[0]),
+        key=lambda item: (
+            origin_total * int(shares[item[2]]) / 100.0 - origin_assignment_by_pin[zone_id].get(item[2], 0),
+            -(float(item[4]) if item[4] is not None else 0.0) if route_strategy == "Avoid mapped inundation first" else -item[0],
+            -item[0],
+        ),
     )
     destination_capacity_remaining[destination_node_id] -= group_size
     origin_assignment_totals[zone_id] += group_size
@@ -1027,6 +1122,7 @@ for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict
         "arrival_min": group_departure_min + group_travel_min,
         "destination_node_id": destination_node_id,
         "nodes": path_nodes,
+        "mapped_exposure_m": path_exposure_m,
     })
     assignment_key = (zone_id, destination_node_id)
     route_summary.setdefault(assignment_key, {
@@ -1036,6 +1132,7 @@ for group in synthetic_groups.sort_values(["departure_min", "group_id"]).to_dict
         "nodes": path_nodes,
         "time_min": path_time,
         "length_m": path_length,
+        "mapped_exposure_m": path_exposure_m,
         "people": 0,
         "groups": 0,
     })
@@ -1047,6 +1144,8 @@ for assignment in route_summary.values():
     assignment["hazard_overlap_m_by_class"] = route_hazard_overlap(
         path_nodes, routing_graph, map_node_lookup, active_hazard_features
     )
+    if assignment["mapped_exposure_m"] is None:
+        assignment["mapped_exposure_m"] = sum(assignment["hazard_overlap_m_by_class"].values())
     assignment["named_roads"] = list(dict.fromkeys(
         str(routing_graph[a][b].get("name", "")).strip()
         for a, b in zip(path_nodes, path_nodes[1:])
@@ -1317,7 +1416,12 @@ with map_col:
                     mode="lines",
                     line={"color": pin_color, "width": 5},
                     name=f"Candidate route · {assignment['origin']} → Pin {pin_index}",
-                    hoverinfo="skip",
+                    hovertemplate=(
+                        f"Candidate route · {assignment['origin']} → Pin {pin_index}<br>"
+                        f"Estimated walk time: {assignment['time_min']:.1f} min<br>"
+                        f"Estimated mapped inundation exposure: {assignment['mapped_exposure_m']:.0f} m"
+                        "<br>Screening estimate · not confirmed safe<extra></extra>"
+                    ),
                 ))
             for pair in pin_pair_routes:
                 if not pair["nodes"]:
@@ -1706,6 +1810,10 @@ with details_col:
 
             with detail_tabs[2]:
                 st.markdown("### Origins routed to selected candidate pins")
+                if route_strategy == "Avoid mapped inundation first":
+                    st.info("Route objective: minimize sampled length inside the static inundation polygons first, then minimize modeled walking time. The exposure estimate is based on three samples per road segment; final class-overlap reporting uses finer sampling.")
+                else:
+                    st.info("Route objective: minimize modeled walking time on the included road graph. You can switch to **Avoid mapped inundation first** in the left Scenario settings to compare a path that prioritizes the mapped static hazard footprint.")
                 st.caption("Set a receiving limit for each pin below. Origin-to-pin shares are set in the left scenario sidebar. Whole groups are routed in departure order toward those shares, subject to graph connectivity and remaining pin capacity.")
                 assigned_group_count = len(group_route_assignments)
                 assigned_people_total = sum(int(group["group_size"]) for group in group_route_assignments)
@@ -1853,6 +1961,7 @@ with details_col:
                             "Actual origin share (%)": round(item["people"] / max(int(zone_summary.loc[zone_summary["zone_id"].astype(str) == item["zone_id"], "people"].iloc[0]), 1) * 100, 1),
                             "Estimated walk time (min)": round(item["time_min"], 1),
                             "Path length (km)": round(item["length_m"] / 1000, 2),
+                            "Estimated mapped exposure (m)": round(item["mapped_exposure_m"], 1),
                             "OSM road names": "; ".join(item["named_roads"]) or "No names recorded",
                         } for item in route_assignments])
                         st.dataframe(route_table, use_container_width=True, hide_index=True)
@@ -1880,7 +1989,7 @@ with details_col:
                         st.caption("Component IDs, node counts, and closest node gaps describe the exported graph only. They are review leads and do not identify a safe shortcut or justify drawing a connector.")
                     if selected_destination_node_id and selected_destination_node_id not in destination_node_ids:
                         st.caption("A road node is staged on the map but has not been added to the receiving-points list yet.")
-                    st.caption("Entered destination limits are total scenario headcounts, not throughput rates. Path/hazard overlap uses approximate 5 m map samples and does not estimate tsunami arrival, changing road depth, congestion, road capacity, or route safety.")
+                    st.caption("Entered destination limits are total scenario headcounts, not throughput rates. The route objective uses static mapped inundation only; the reported class overlap uses approximate 5 m map samples. Neither estimates tsunami arrival, changing road depth, congestion, road capacity, or confirmed route safety.")
 
             with detail_tabs[3]:
                 st.markdown("### Schematic route demo")
